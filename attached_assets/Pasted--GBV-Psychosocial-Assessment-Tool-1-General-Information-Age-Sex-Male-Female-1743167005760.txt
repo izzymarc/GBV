@@ -1,0 +1,119 @@
+# GBV Psychosocial Assessment Tool
+
+## 1. General Information
+
+- **Age:**
+- **Sex:** Male ☐ | Female ☐
+- **Ethnicity/Tribe:**
+- **Level of Education:**
+  - No education ☐ | Some Primary school ☐ | Completed primary ☐ | Some Secondary ☐ | Completed secondary ☐ | Undergraduate ☐ | Graduate ☐ | Postgraduate ☐ | Religious ☐
+- **Marital Status:** Never Married ☐ | Married ☐ | Cohabiting ☐ | Divorced ☐ | Separated ☐ | Widowed ☐ | Minor ☐
+- **Number of Dependents:**
+- **Current Living Arrangement:** With family & friends ☐ | Alone ☐ | Shelter ☐ | Others ☐
+- **Employment Status:** Currently Employed ☐ | Self-Employed ☐ | Unemployed ☐ | Not reported ☐
+- **Vulnerability:** Physical disability ☐ | PLHIV ☐ | Female sex worker ☐ | IDP ☐ | Drug user ☐ | Widow ☐ | Out of school child ☐ | Minor ☐ | Housemaid/Domestic worker ☐ | Child Apprentice ☐ | Orphans ☐ | Not applicable ☐ | Others ☐
+
+## 2. Incident Details (Sensitive Section)
+
+- **Location of incident:** Survivor/Victim’s Home ☐ | Perpetrator's house ☐ | Bush/forest ☐ | Road ☐ | School ☐ | Place of Work ☐ | IDP Camp ☐ | Others ☐
+- **Type of Violence Experienced:** Sexual Assault ☐ | Physical Assault ☐ | Financial/Economic ☐ | Online/Cyberspace ☐ | Rape ☐ | Defilement ☐ | Forced Marriage ☐ | Denial of Resources ☐ | Psychological/Emotional Abuse ☐ | Female Genital Mutilation ☐ | Violation of property & inheritance right ☐ | Child abuse and neglect ☐ | Others ☐
+- **Relationship with Perpetrator:** Stranger ☐ | Service provider ☐ | Spouse ☐ | Current intimate partner ☐ | Former intimate partner ☐ | Parent ☐ | Relative ☐ | Law enforcement agent ☐ | Religious leader ☐ | Teacher/Lecturer ☐
+- **Frequency of Incidents:**
+- **Length of Exposure:**
+- **Reporting Status:** Yes ☐ | No ☐
+- **Services Received:**
+- **Outcome:**
+
+## 3. Anxiety Symptoms (GAD-7 Scale)
+
+- Feeling nervous, anxious, or on edge
+- Not able to control worrying
+- Worrying too much about different things
+- Trouble relaxing
+- Being restless
+- Easily annoyed or irritable
+- Afraid as if something awful might happen
+
+## 4. Depression Symptoms (PHQ-9 Scale)
+
+- Little interest or pleasure in activities
+- Feeling down, depressed, hopeless
+- Trouble sleeping
+- Feeling tired, low energy
+- Poor appetite or overeating
+- Feeling bad about yourself
+- Trouble concentrating
+- Moving/speaking slowly or being fidgety
+- Thoughts of self-harm
+
+## 5. Trauma Symptoms (PTSD Checklist - PCL-5)
+
+- Disturbing memories
+- Avoiding memories or feelings
+- Being super alert or watchful
+- Feeling jumpy
+- Difficulty experiencing positive emotions
+- Trouble remembering traumatic events
+
+### Trauma Bonding Assessment
+
+- Emotional attachment despite harm
+- Defending abuser’s behavior
+- Feeling guilt for abuse
+- Believing love can change abuser
+- Relief/happiness at kindness from abuser
+- Difficulty imagining life without abuser
+- Strong urge to remain connected
+- Justifying staying due to dependence
+- Minimizing severity of abuse
+- Anxiety/distress at thought of leaving
+
+## 6. Social Support and Coping
+
+- Sources of support
+- Satisfaction with support
+- Coping mechanisms
+- Previous counseling or therapy experiences
+
+## 7. Physical and Functional Well-being
+
+### General Physical Health
+
+- Description of overall health
+- Chronic pain/injuries due to violence
+- Chronic conditions worsened by abuse
+- Injuries experienced (head injuries, fractures, bruises, internal injuries, chronic pain, difficulty breathing, hearing/vision impairment, gynecological issues, gastrointestinal issues)
+- Difficulty in daily activities
+
+### Sexual and Reproductive Health
+
+- Consequences of sexual violence (unwanted pregnancy, STIs, chronic pain, etc.)
+- Medical care accessed
+
+### Sleep and Fatigue
+
+- Sleep disturbances (difficulty falling asleep, frequent waking, nightmares, exhaustion)
+
+### Functional Well-being
+
+- Limitations due to physical discomfort
+- Impact on work or earning a living
+
+### Healthcare Access
+
+- Medical care sought
+- Barriers to healthcare access
+- Unmet ongoing medical needs
+
+## 8. Risk Assessment
+
+- Thoughts of self-harm/suicide
+- Feeling of safety
+- Risk of further harm
+- Need for safety plan
+
+## 9. Program Expectations and Goals
+
+- Expectations from psychosocial support
+- Specific life changes desired
+
