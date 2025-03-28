@@ -1,4 +1,4 @@
-import { db } from "../server/db";
+import { db, pool } from "../server/db";
 import { assessments } from "../shared/schema";
 
 async function seedDatabase() {
@@ -110,8 +110,8 @@ async function seedDatabase() {
     console.error("Error seeding database:", error);
     throw error;
   } finally {
-    // Close the database connection
-    await db.end?.();
+    // No need to explicitly close the connection in this script
+    // The process.exit() will terminate all connections
   }
 }
 

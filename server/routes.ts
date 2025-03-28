@@ -106,8 +106,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health check endpoint
+  // Health check endpoints
   app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      databaseConnected: process.env.DATABASE_URL ? true : false
+    });
+  });
+  
+  // Duplicate health check endpoint with /healthcheck path for compatibility
+  app.get("/api/healthcheck", (req, res) => {
     res.json({ 
       status: "ok",
       timestamp: new Date().toISOString(),
@@ -122,6 +131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ 
       status: "success", 
       message: "Migrations would run here in a production environment"
+    });
+  });
+  
+  // Root route for checking the server status
+  app.get("/api", (req, res) => {
+    res.json({
+      status: "server running",
+      message: "Welcome to the GBV Psychosocial Assessment API",
+      timestamp: new Date().toISOString()
     });
   });
 

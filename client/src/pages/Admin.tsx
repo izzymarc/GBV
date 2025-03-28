@@ -185,10 +185,16 @@ const Admin: React.FC = () => {
   const [filterCompleted, setFilterCompleted] = useState<boolean | null>(null);
 
   // Fetch all assessments from the API
-  const { data: apiResponse, isLoading, error } = useQuery({
+  const { data: apiResponse, isLoading, error } = useQuery<AdminAssessmentResponse>({
     queryKey: ['/api/admin/assessments'],
     queryFn: async () => {
-      return apiRequest('/api/admin/assessments');
+      const response = await fetch('/api/admin/assessments', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch assessments');
+      }
+      return await response.json() as AdminAssessmentResponse;
     },
   });
 
@@ -426,12 +432,12 @@ const Admin: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAssessments.filter(a => a.completed).length === 0 ? (
+                      {filteredAssessments.filter((a: Assessment) => a.completed).length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center">No completed assessments found</TableCell>
                         </TableRow>
                       ) : (
-                        filteredAssessments.filter(a => a.completed).map((assessment) => (
+                        filteredAssessments.filter((a: Assessment) => a.completed).map((assessment: Assessment) => (
                           <TableRow key={assessment.id}>
                             <TableCell className="font-medium">{assessment.id}</TableCell>
                             <TableCell>{formatDate(assessment.createdAt.toString())}</TableCell>
@@ -475,12 +481,12 @@ const Admin: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredAssessments.filter(a => !a.completed).length === 0 ? (
+                      {filteredAssessments.filter((a: Assessment) => !a.completed).length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center">No incomplete assessments found</TableCell>
                         </TableRow>
                       ) : (
-                        filteredAssessments.filter(a => !a.completed).map((assessment) => (
+                        filteredAssessments.filter((a: Assessment) => !a.completed).map((assessment: Assessment) => (
                           <TableRow key={assessment.id}>
                             <TableCell className="font-medium">{assessment.id}</TableCell>
                             <TableCell>{formatDate(assessment.createdAt.toString())}</TableCell>

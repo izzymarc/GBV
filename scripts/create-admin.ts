@@ -17,8 +17,8 @@ async function createAdminUser() {
     console.error("Error creating admin user:", error);
     throw error;
   } finally {
-    // Close the database connection
-    await db.end?.();
+    // No need to explicitly close the connection in this script
+    // The process.exit() will terminate all connections
   }
 }
 
