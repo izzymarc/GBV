@@ -1,194 +1,214 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useFormContext } from '@/lib/formContext';
-import { formOptions } from '@/lib/assessmentUtils';
+import { useFormContext } from "@/lib/formContext";
+import { formOptions } from "@/lib/assessmentUtils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const GeneralInformation: React.FC = () => {
   const { formData, updateFormData } = useFormContext();
-  const generalInfo = formData.generalInformation;
+  const { generalInformation } = formData;
 
-  const handleInputChange = (field: string, value: string) => {
-    updateFormData('generalInformation', { [field]: value });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateFormData('generalInformation', {
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    updateFormData('generalInformation', {
+      [name]: value
+    });
+  };
+
+  const handleSexChange = (value: string) => {
+    updateFormData('generalInformation', {
+      sex: value
+    });
   };
 
   const handleVulnerabilityChange = (value: string, checked: boolean) => {
-    const currentValues = [...generalInfo.vulnerabilities];
+    const currentVulnerabilities = [...generalInformation.vulnerabilities];
     
     if (checked) {
-      // Add the value if it's not already in the array
-      if (!currentValues.includes(value)) {
-        updateFormData('generalInformation', { 
-          vulnerabilities: [...currentValues, value] 
+      if (!currentVulnerabilities.includes(value)) {
+        updateFormData('generalInformation', {
+          vulnerabilities: [...currentVulnerabilities, value]
         });
       }
     } else {
-      // Remove the value
-      updateFormData('generalInformation', { 
-        vulnerabilities: currentValues.filter(item => item !== value) 
+      updateFormData('generalInformation', {
+        vulnerabilities: currentVulnerabilities.filter(v => v !== value)
       });
     }
   };
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg mb-6">
-      <CardContent className="px-4 py-5 sm:p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">1. General Information</h2>
-        <p className="text-gray-600 mb-6">Basic demographic information about the survivor/client.</p>
-
-        <div className="space-y-6">
-          {/* Age */}
+    <Card className="border-none shadow-none">
+      <CardContent className="pt-6">
+        <div className="space-y-8">
           <div>
-            <Label htmlFor="age" className="block text-sm font-medium text-gray-700">Age</Label>
-            <Input 
-              type="number" 
-              id="age" 
-              min="0" 
-              max="120" 
-              value={generalInfo.age}
-              onChange={(e) => handleInputChange('age', e.target.value)}
-              className="mt-1 block w-full rounded-md"
-            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">General Information</h2>
+            <p className="text-gray-500 mb-6">Basic demographic information for the assessment</p>
           </div>
 
-          {/* Sex */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Sex</Label>
-            <RadioGroup 
-              value={generalInfo.sex} 
-              onValueChange={(value) => handleInputChange('sex', value)}
-              className="flex space-x-4"
-            >
-              <div className="flex items-center">
-                <RadioGroupItem value="Male" id="sex-male" />
-                <Label htmlFor="sex-male" className="ml-2">Male</Label>
-              </div>
-              <div className="flex items-center">
-                <RadioGroupItem value="Female" id="sex-female" />
-                <Label htmlFor="sex-female" className="ml-2">Female</Label>
-              </div>
-            </RadioGroup>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Age */}
+            <div className="space-y-2">
+              <Label htmlFor="age">Age</Label>
+              <Input
+                id="age"
+                name="age"
+                type="text"
+                value={generalInformation.age || ''}
+                onChange={handleInputChange}
+                placeholder="Enter age"
+              />
+            </div>
 
-          {/* Ethnicity/Tribe */}
-          <div>
-            <Label htmlFor="ethnicity" className="block text-sm font-medium text-gray-700">Ethnicity/Tribe</Label>
-            <Input 
-              type="text" 
-              id="ethnicity" 
-              value={generalInfo.ethnicity}
-              onChange={(e) => handleInputChange('ethnicity', e.target.value)}
-              className="mt-1 block w-full rounded-md"
-            />
-          </div>
-
-          {/* Level of Education */}
-          <div>
-            <Label htmlFor="education" className="block text-sm font-medium text-gray-700">Level of Education</Label>
-            <Select 
-              value={generalInfo.education} 
-              onValueChange={(value) => handleInputChange('education', value)}
-            >
-              <SelectTrigger id="education" className="w-full">
-                <SelectValue placeholder="Select education level" />
-              </SelectTrigger>
-              <SelectContent>
-                {formOptions.educationOptions.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Marital Status */}
-          <div>
-            <Label htmlFor="marital-status" className="block text-sm font-medium text-gray-700">Marital Status</Label>
-            <Select 
-              value={generalInfo.maritalStatus} 
-              onValueChange={(value) => handleInputChange('maritalStatus', value)}
-            >
-              <SelectTrigger id="marital-status" className="w-full">
-                <SelectValue placeholder="Select marital status" />
-              </SelectTrigger>
-              <SelectContent>
-                {formOptions.maritalStatusOptions.map((option) => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Number of Dependents */}
-          <div>
-            <Label htmlFor="dependents" className="block text-sm font-medium text-gray-700">Number of Dependents</Label>
-            <Input 
-              type="number" 
-              id="dependents" 
-              min="0" 
-              value={generalInfo.dependents}
-              onChange={(e) => handleInputChange('dependents', e.target.value)}
-              className="mt-1 block w-full rounded-md"
-            />
-          </div>
-
-          {/* Current Living Arrangement */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Current Living Arrangement</Label>
-            <RadioGroup 
-              value={generalInfo.livingArrangement} 
-              onValueChange={(value) => handleInputChange('livingArrangement', value)}
-              className="mt-2 space-y-2"
-            >
-              {formOptions.livingArrangementOptions.map((option) => (
-                <div key={option} className="flex items-center">
-                  <RadioGroupItem value={option} id={`living-${option}`} />
-                  <Label htmlFor={`living-${option}`} className="ml-2">{option}</Label>
+            {/* Sex */}
+            <div className="space-y-2">
+              <Label>Sex</Label>
+              <RadioGroup
+                value={generalInformation.sex || ''}
+                onValueChange={handleSexChange}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Male" id="male" />
+                  <Label htmlFor="male" className="cursor-pointer">Male</Label>
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Employment Status */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Employment Status</Label>
-            <RadioGroup 
-              value={generalInfo.employmentStatus} 
-              onValueChange={(value) => handleInputChange('employmentStatus', value)}
-              className="mt-2 space-y-2"
-            >
-              {formOptions.employmentStatusOptions.map((option) => (
-                <div key={option} className="flex items-center">
-                  <RadioGroupItem value={option} id={`emp-${option}`} />
-                  <Label htmlFor={`emp-${option}`} className="ml-2">{option}</Label>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Female" id="female" />
+                  <Label htmlFor="female" className="cursor-pointer">Female</Label>
                 </div>
-              ))}
-            </RadioGroup>
+              </RadioGroup>
+            </div>
+
+            {/* Ethnicity/Tribe */}
+            <div className="space-y-2">
+              <Label htmlFor="ethnicity">Ethnicity/Tribe</Label>
+              <Input
+                id="ethnicity"
+                name="ethnicity"
+                type="text"
+                value={generalInformation.ethnicity || ''}
+                onChange={handleInputChange}
+                placeholder="Enter ethnicity or tribe"
+              />
+            </div>
+
+            {/* Education Level */}
+            <div className="space-y-2">
+              <Label htmlFor="education">Level of Education</Label>
+              <Select 
+                value={generalInformation.education || ''} 
+                onValueChange={(value) => handleSelectChange('education', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select education level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formOptions.educationOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Marital Status */}
+            <div className="space-y-2">
+              <Label htmlFor="maritalStatus">Marital Status</Label>
+              <Select 
+                value={generalInformation.maritalStatus || ''} 
+                onValueChange={(value) => handleSelectChange('maritalStatus', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select marital status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formOptions.maritalStatusOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Number of Dependents */}
+            <div className="space-y-2">
+              <Label htmlFor="dependents">Number of Dependents</Label>
+              <Input
+                id="dependents"
+                name="dependents"
+                type="text"
+                value={generalInformation.dependents || ''}
+                onChange={handleInputChange}
+                placeholder="Enter number of dependents"
+              />
+            </div>
+
+            {/* Living Arrangement */}
+            <div className="space-y-2">
+              <Label htmlFor="livingArrangement">Current Living Arrangement</Label>
+              <Select 
+                value={generalInformation.livingArrangement || ''} 
+                onValueChange={(value) => handleSelectChange('livingArrangement', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select living arrangement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formOptions.livingArrangementOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Employment Status */}
+            <div className="space-y-2">
+              <Label htmlFor="employmentStatus">Employment Status</Label>
+              <Select 
+                value={generalInformation.employmentStatus || ''} 
+                onValueChange={(value) => handleSelectChange('employmentStatus', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employment status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formOptions.employmentStatusOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Vulnerability */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-1">Vulnerability (select all that apply)</Label>
-            <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
-              {formOptions.vulnerabilityOptions.map((option, index) => (
-                <div key={index} className="flex items-start">
+          {/* Vulnerabilities */}
+          <div className="space-y-4 mt-6">
+            <Label>Vulnerability (Select all that apply)</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {formOptions.vulnerabilityOptions.map((option) => (
+                <div key={option} className="flex items-center space-x-2">
                   <Checkbox 
-                    id={`vulnerability-${index}`} 
-                    checked={generalInfo.vulnerabilities.includes(option)}
+                    id={`vulnerability-${option}`}
+                    checked={generalInformation.vulnerabilities.includes(option)}
                     onCheckedChange={(checked) => handleVulnerabilityChange(option, checked as boolean)}
                   />
                   <Label 
-                    htmlFor={`vulnerability-${index}`} 
-                    className="ml-2 text-sm text-gray-700"
+                    htmlFor={`vulnerability-${option}`}
+                    className="text-sm font-normal cursor-pointer"
                   >
                     {option}
                   </Label>
