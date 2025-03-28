@@ -76,54 +76,58 @@ const FormProgress: React.FC<FormProgressProps> = ({ totalSteps }) => {
     <div className="py-4 px-4 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         <div className="hidden lg:flex items-center justify-between w-full">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <React.Fragment key={`step-${index}`}>
-              {/* Step indicator with icon */}
-              <div
-                onClick={() => handleStepClick(index)}
-                className={cn(
-                  "flex flex-col items-center cursor-pointer transition-colors px-2 py-1 rounded-md",
-                  isCompleted ? "cursor-not-allowed" : "hover:bg-gray-50 hover:text-primary-700",
-                  currentStep === index ? "bg-blue-50 text-primary-700 border border-blue-200" : "text-gray-600"
-                )}
-              >
-                <div className="flex items-center mb-2">
-                  {hasSectionData(index) ? (
-                    hasCriticalValue(index) ? (
-                      <AlertTriangle className="h-6 w-6 text-red-500" />
-                    ) : (
-                      <CheckCircle className="h-6 w-6 text-green-500" />
-                    )
-                  ) : (
-                    <Circle 
-                      className={cn(
-                        "h-6 w-6",
-                        currentStep === index ? "text-primary-600 fill-blue-100" : "text-gray-400"
-                      )}
-                    />
-                  )}
-                </div>
-                <span 
+          {/* Generate all step indicators */}
+          {Array.from({ length: totalSteps }).map((_, index) => {
+            // Determine which icon to show
+            let StepIcon = Circle;
+            let iconColorClass = currentStep === index ? "text-primary-600 fill-blue-100" : "text-gray-400";
+            
+            if (hasSectionData(index)) {
+              if (hasCriticalValue(index)) {
+                StepIcon = AlertTriangle;
+                iconColorClass = "text-red-500";
+              } else {
+                StepIcon = CheckCircle;
+                iconColorClass = "text-green-500";
+              }
+            }
+            
+            return (
+              <div key={`step-container-${index}`} className="flex items-center">
+                {/* Step indicator */}
+                <div
+                  onClick={() => handleStepClick(index)}
                   className={cn(
-                    "text-sm font-medium whitespace-nowrap text-center",
-                    currentStep === index ? "text-primary-700 font-semibold" : "text-gray-600"
+                    "flex flex-col items-center cursor-pointer transition-colors px-2 py-1 rounded-md",
+                    isCompleted ? "cursor-not-allowed" : "hover:bg-gray-50 hover:text-primary-700",
+                    currentStep === index ? "bg-blue-50 text-primary-700 border border-blue-200" : "text-gray-600"
                   )}
                 >
-                  {sectionNames[index]}
-                </span>
+                  <div className="flex items-center mb-2">
+                    <StepIcon className={cn("h-6 w-6", iconColorClass)} />
+                  </div>
+                  <span 
+                    className={cn(
+                      "text-sm font-medium whitespace-nowrap text-center",
+                      currentStep === index ? "text-primary-700 font-semibold" : "text-gray-600"
+                    )}
+                  >
+                    {sectionNames[index]}
+                  </span>
+                </div>
+                
+                {/* Connector line (except after the last step) */}
+                {index < totalSteps - 1 && (
+                  <div 
+                    className={cn(
+                      "w-full h-1 mx-2 rounded-full max-w-12", 
+                      index < currentStep ? "bg-primary-500" : "bg-gray-200"
+                    )}
+                  />
+                )}
               </div>
-              
-              {/* Connector line between steps (except after the last step) */}
-              {index < totalSteps - 1 && (
-                <div 
-                  className={cn(
-                    "w-full h-1 mx-2 rounded-full max-w-12", 
-                    index < currentStep ? "bg-primary-500" : "bg-gray-200"
-                  )}
-                />
-              )}
-            </React.Fragment>
-          ))}
+            );
+          })}
         </div>
         
         {/* Mobile view: just show current step / total with clearer section name */}

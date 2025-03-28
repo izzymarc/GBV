@@ -205,24 +205,26 @@ const AssessmentForm: React.FC = () => {
                       <Button
                         onClick={handleNext}
                         disabled={isSaving}
-                        className="bg-primary-700 hover:bg-primary-800 text-white font-semibold shadow-md px-5 py-6"
+                        size="lg"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-blue-500"
                       >
                         {isSaving ? (
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : null}
-                        Save & Continue to Next Section
+                        Save & Continue →
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     ) : (
                       <Button
                         onClick={handleComplete}
                         disabled={isSaving}
-                        className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md px-5 py-6"
+                        size="lg"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-green-500"
                       >
                         {isSaving ? (
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : null}
-                        Save & Complete Assessment
+                        Save & Complete ✓
                         <Check className="ml-2 h-5 w-5" />
                       </Button>
                     )}

@@ -85,8 +85,15 @@ export const getRiskStatus = (suicidalThoughts: string, furtherHarmRisk: string)
 
 // Get recommended interventions based on suicide risk and further harm risk
 export const getRecommendedInterventions = (
-  suicidalThoughts: string,
-  furtherHarmRisk: string
+  anxietyScore: number,
+  depressionScore: number,
+  traumaScore: number,
+  suicidalThoughts: string = '',
+  furtherHarmRisk: string = '',
+  supportSources: string[] = [],
+  supportSatisfaction: string = '',
+  physicalInjuries: string[] = [],
+  priorities: string[] = []
 ): string[] => {
   const interventions: string[] = [];
   const riskStatus = getRiskStatus(suicidalThoughts, furtherHarmRisk);
@@ -96,12 +103,12 @@ export const getRecommendedInterventions = (
     interventions.push('Safety planning');
     interventions.push('Crisis intervention');
 
-    if (suicidalThoughts.includes('Active thoughts')) {
+    if (suicidalThoughts && suicidalThoughts.includes('Active thoughts')) {
       interventions.push('Immediate referral to psychiatric services');
       interventions.push('Suicide risk assessment and monitoring');
     }
     
-    if (furtherHarmRisk.includes('Immediate danger')) {
+    if (furtherHarmRisk && furtherHarmRisk.includes('Immediate danger')) {
       interventions.push('Emergency shelter services');
       interventions.push('Legal protection (restraining order)');
     }
@@ -116,7 +123,7 @@ export const getRecommendedInterventions = (
   // Add standard interventions based on GBV context
   interventions.push('Individual psychotherapy');
   
-  if (furtherHarmRisk.includes('contact with perpetrator')) {
+  if (furtherHarmRisk && furtherHarmRisk.includes('contact with perpetrator')) {
     interventions.push('Legal advocacy');
   }
   
