@@ -187,48 +187,49 @@ const AssessmentForm: React.FC = () => {
               <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
                 <div className="flex justify-between items-center">
                   <Button
-                    variant="outline"
                     onClick={handlePrevious}
-                    className="flex items-center font-semibold border-2 border-gray-300 hover:bg-gray-100"
+                    disabled={isSaving}
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-blue-500"
                   >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    <ArrowLeft className="mr-2 h-5 w-5" />
                     {currentStep === 0 ? 'Back to Home' : 'Previous Section'}
                   </Button>
 
-                  <div className="flex items-center space-x-3">
-                    {/* Current step indicator for mobile */}
-                    <span className="text-sm text-gray-700 font-medium hidden sm:inline-block">
+                  <div className="hidden md:block">
+                    {/* Current step indicator for tablets/desktop */}
+                    <span className="text-sm text-gray-700 font-medium px-4 py-2 bg-gray-100 rounded-full">
                       Step {currentStep + 1} of {TOTAL_STEPS}
                     </span>
-                    
-                    {currentStep < TOTAL_STEPS - 1 ? (
-                      <Button
-                        onClick={handleNext}
-                        disabled={isSaving}
-                        size="lg"
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-blue-500"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        ) : null}
-                        Save & Continue →
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleComplete}
-                        disabled={isSaving}
-                        size="lg"
-                        className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-green-500"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        ) : null}
-                        Save & Complete ✓
-                        <Check className="ml-2 h-5 w-5" />
-                      </Button>
-                    )}
                   </div>
+                    
+                  {currentStep < TOTAL_STEPS - 1 ? (
+                    <Button
+                      onClick={handleNext}
+                      disabled={isSaving}
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-blue-500"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      ) : null}
+                      Save & Continue
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleComplete}
+                      disabled={isSaving}
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg px-6 py-6 text-lg border-2 border-blue-500"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      ) : null}
+                      Save & Complete
+                      <Check className="ml-2 h-5 w-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
