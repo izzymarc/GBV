@@ -1,117 +1,203 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useFormContext } from '@/lib/formContext';
-import { formOptions } from '@/lib/assessmentUtils';
+import { useFormContext } from "@/lib/formContext";
+import { getRecommendedInterventions } from "@/lib/assessmentUtils";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Lightbulb } from 'lucide-react';
 
 const ProgramExpectations: React.FC = () => {
   const { formData, updateFormData } = useFormContext();
-  const programData = formData.programExpectations;
+  const { programExpectations, riskAssessment } = formData;
 
-  const handleInputChange = (field: string, value: any) => {
-    updateFormData('programExpectations', { [field]: value });
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateFormData('programExpectations', {
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleRadioChange = (field: string, value: string) => {
+    updateFormData('programExpectations', {
+      [field]: value
+    });
   };
 
   const handlePriorityChange = (value: string, checked: boolean) => {
-    const currentValues = [...programData.priorities];
+    const currentPriorities = [...programExpectations.priorities];
     
     if (checked) {
       // Only allow up to 3 priorities
-      if (currentValues.length < 3) {
-        if (!currentValues.includes(value)) {
-          updateFormData('programExpectations', { 
-            priorities: [...currentValues, value] 
+      if (currentPriorities.length < 3) {
+        if (!currentPriorities.includes(value)) {
+          updateFormData('programExpectations', {
+            priorities: [...currentPriorities, value]
           });
         }
       }
     } else {
-      updateFormData('programExpectations', { 
-        priorities: currentValues.filter(item => item !== value) 
+      updateFormData('programExpectations', {
+        priorities: currentPriorities.filter(v => v !== value)
       });
     }
   };
 
+  // Get recommendations based on the risk assessment
+  const recommendedInterventions = getRecommendedInterventions(
+    riskAssessment.suicidalThoughts || '', 
+    riskAssessment.furtherHarmRisk || ''
+  );
+
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg mb-6">
-      <CardContent className="px-4 py-5 sm:p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">9. Program Expectations and Goals</h2>
-        <p className="text-gray-600 mb-6">
-          Understanding the survivor's expectations and desired outcomes from psychosocial support.
-        </p>
-
-        <div className="space-y-6">
-          {/* Expectations from psychosocial support */}
+    <Card className="border-none shadow-none">
+      <CardContent className="pt-6">
+        <div className="space-y-8">
           <div>
-            <Label htmlFor="expectations" className="block text-sm font-medium text-gray-700">Expectations from psychosocial support</Label>
-            <p className="text-sm text-gray-500 mb-2">What do you hope to gain from counseling and support services?</p>
-            <Textarea 
-              id="expectations" 
-              value={programData.expectations}
-              onChange={(e) => handleInputChange('expectations', e.target.value)}
-              rows={4} 
-              className="mt-1 block w-full rounded-md"
-            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Program Expectations and Goals</h2>
+            <p className="text-gray-500 mb-6">Understanding the client's expectations and establishing treatment goals</p>
           </div>
 
-          {/* Specific life changes desired */}
-          <div>
-            <Label htmlFor="life-changes" className="block text-sm font-medium text-gray-700">Specific life changes desired</Label>
-            <p className="text-sm text-gray-500 mb-2">What specific changes would you like to see in your life through this process?</p>
-            <Textarea 
-              id="life-changes" 
-              value={programData.lifeChanges}
-              onChange={(e) => handleInputChange('lifeChanges', e.target.value)}
-              rows={4} 
-              className="mt-1 block w-full rounded-md"
-            />
-          </div>
-
-          {/* Priorities for intervention */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Priorities for intervention (select top 3)</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
-              {formOptions.priorityOptions.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <Checkbox 
-                    id={`priority-${option}`} 
-                    checked={programData.priorities.includes(option)}
-                    onCheckedChange={(checked) => handlePriorityChange(option, checked as boolean)}
-                    disabled={!programData.priorities.includes(option) && programData.priorities.length >= 3}
-                  />
-                  <Label htmlFor={`priority-${option}`} className="ml-2 text-sm text-gray-700">{option}</Label>
-                </div>
-              ))}
+          <div className="space-y-6">
+            {/* Expectations */}
+            <div className="space-y-2">
+              <Label htmlFor="expectations">What does the client hope to gain from services?</Label>
+              <Textarea
+                id="expectations"
+                name="expectations"
+                value={programExpectations.expectations || ''}
+                onChange={handleInputChange}
+                placeholder="Describe the client's expectations and hopes for the program..."
+                className="min-h-[100px]"
+              />
             </div>
-            {programData.priorities.length > 3 && (
-              <p className="mt-2 text-sm text-red-600">Please select only your top 3 priorities.</p>
-            )}
-          </div>
 
-          {/* Timeframe for Support */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Anticipated timeframe for support needed</Label>
-            <RadioGroup 
-              value={programData.timeframe} 
-              onValueChange={(value) => handleInputChange('timeframe', value)}
-              className="space-y-2"
-            >
-              {formOptions.timeframeOptions.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <RadioGroupItem value={option} id={`timeframe-${index}`} />
-                  <Label htmlFor={`timeframe-${index}`} className="ml-2 text-sm text-gray-700">{option}</Label>
-                </div>
-              ))}
-              <div className="flex items-center">
-                <RadioGroupItem value="Uncertain/don't know" id="timeframe-uncertain" />
-                <Label htmlFor="timeframe-uncertain" className="ml-2 text-sm text-gray-700">Uncertain/don't know</Label>
+            {/* Life Changes */}
+            <div className="space-y-2">
+              <Label htmlFor="lifeChanges">What changes would the client like to see in their life?</Label>
+              <Textarea
+                id="lifeChanges"
+                name="lifeChanges"
+                value={programExpectations.lifeChanges || ''}
+                onChange={handleInputChange}
+                placeholder="Describe the client's desired changes and outcomes..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Priorities */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Treatment Priorities (select up to 3)</Label>
+                <span className="text-sm text-gray-500">{programExpectations.priorities.length}/3 selected</span>
               </div>
-            </RadioGroup>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  'Safety planning',
+                  'Trauma processing',
+                  'Anxiety management',
+                  'Depression management',
+                  'Legal advocacy',
+                  'Housing assistance',
+                  'Financial support',
+                  'Medical care',
+                  'Family support',
+                  'Employment assistance',
+                  'Substance use treatment',
+                  'Parenting support'
+                ].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`priority-${option}`}
+                      checked={programExpectations.priorities.includes(option)}
+                      onCheckedChange={(checked) => handlePriorityChange(option, !!checked)}
+                      disabled={!programExpectations.priorities.includes(option) && programExpectations.priorities.length >= 3}
+                    />
+                    <Label 
+                      htmlFor={`priority-${option}`}
+                      className={`text-sm font-normal cursor-pointer ${
+                        !programExpectations.priorities.includes(option) && programExpectations.priorities.length >= 3 
+                          ? 'text-gray-400' 
+                          : ''
+                      }`}
+                    >
+                      {option}
+                      {recommendedInterventions.includes(option) && (
+                        <span className="ml-1 text-xs text-blue-600">(Recommended)</span>
+                      )}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Timeframe */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Expected Timeframe for Services</Label>
+              <RadioGroup
+                value={programExpectations.timeframe || ''}
+                onValueChange={(value) => handleRadioChange('timeframe', value)}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Short-term (1-3 months)" id="time-short" />
+                  <Label htmlFor="time-short" className="cursor-pointer">Short-term (1-3 months)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Medium-term (3-6 months)" id="time-medium" />
+                  <Label htmlFor="time-medium" className="cursor-pointer">Medium-term (3-6 months)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Long-term (6+ months)" id="time-long" />
+                  <Label htmlFor="time-long" className="cursor-pointer">Long-term (6+ months)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Ongoing/Indefinite" id="time-ongoing" />
+                  <Label htmlFor="time-ongoing" className="cursor-pointer">Ongoing/Indefinite</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
         </div>
       </CardContent>
+
+      <CardFooter className="flex flex-col items-start pt-6 border-t">
+        {/* Professional Recommendations */}
+        <div className="w-full p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-blue-800 mb-2">Professional Recommendations</h3>
+              
+              {recommendedInterventions.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-blue-700 mb-1">
+                    Based on the assessment, consider the following interventions:
+                  </p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-blue-700">
+                    {recommendedInterventions.map((intervention, index) => (
+                      <li key={index}>{intervention}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-blue-700">
+                  Complete the Risk Assessment section for tailored intervention recommendations.
+                </p>
+              )}
+              
+              <p className="text-sm text-blue-700 mt-3">
+                These recommendations should be discussed with the client and incorporated into the 
+                treatment plan based on the client's preferences and priorities.
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

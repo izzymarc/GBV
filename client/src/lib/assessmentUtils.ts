@@ -83,63 +83,50 @@ export const getRiskStatus = (suicidalThoughts: string, furtherHarmRisk: string)
   }
 };
 
-// Get recommended interventions based on scores and risk factors
+// Get recommended interventions based on suicide risk and further harm risk
 export const getRecommendedInterventions = (
-  anxietyScore: number, 
-  depressionScore: number,
-  traumaScore: number,
   suicidalThoughts: string,
-  furtherHarmRisk: string,
-  supportSources: string[],
-  supportSatisfaction: number,
-  physicalInjuries: string[],
-  priorities: string[],
+  furtherHarmRisk: string
 ): string[] => {
   const interventions: string[] = [];
   const riskStatus = getRiskStatus(suicidalThoughts, furtherHarmRisk);
   
-  // Critical risk interventions
-  if (riskStatus.severity === 'critical') {
-    interventions.push('Crisis intervention and safety planning');
-    interventions.push('Immediate referral to psychiatric services');
-    interventions.push('Consider hospitalization/emergency services');
+  // Risk based interventions
+  if (riskStatus.severity === 'high' || riskStatus.severity === 'critical') {
+    interventions.push('Safety planning');
+    interventions.push('Crisis intervention');
+
+    if (suicidalThoughts.includes('Active thoughts')) {
+      interventions.push('Immediate referral to psychiatric services');
+      interventions.push('Suicide risk assessment and monitoring');
+    }
+    
+    if (furtherHarmRisk.includes('Immediate danger')) {
+      interventions.push('Emergency shelter services');
+      interventions.push('Legal protection (restraining order)');
+    }
+  }
+
+  if (riskStatus.severity === 'moderate') {
+    interventions.push('Regular safety check-ins');
+    interventions.push('Trauma-focused therapy');
+    interventions.push('Support group participation');
   }
   
-  // Mental health interventions based on scores
-  if (anxietyScore >= 10 || depressionScore >= 10 || traumaScore >= 33) {
-    interventions.push('Individual psychotherapy (CBT/trauma-focused)');
+  // Add standard interventions based on GBV context
+  interventions.push('Individual psychotherapy');
+  
+  if (furtherHarmRisk.includes('contact with perpetrator')) {
+    interventions.push('Legal advocacy');
   }
   
-  if (depressionScore >= 15) {
-    interventions.push('Consider psychiatric evaluation for medication');
-  }
-  
-  if (traumaScore >= 20) {
-    interventions.push('Trauma-focused therapy (EMDR/TF-CBT)');
-  }
-  
-  // Additional support based on form data
-  if (supportSources.length <= 1 || supportSatisfaction <= 2) {
-    interventions.push('Social support enhancement and community connection');
-  }
-  
-  if (physicalInjuries.length > 0 && !physicalInjuries.includes('None')) {
-    interventions.push('Medical assessment and treatment plan');
-  }
-  
-  if (priorities.includes('Legal assistance')) {
-    interventions.push('Legal aid and advocacy services');
-  }
-  
-  if (priorities.includes('Financial support')) {
-    interventions.push('Economic empowerment and financial planning');
-  }
-  
-  // If no specific interventions identified, add general support
-  if (interventions.length === 0) {
-    interventions.push('Supportive counseling');
+  // If limited interventions identified, add general support options
+  if (interventions.length < 3) {
+    if (!interventions.includes('Individual psychotherapy')) {
+      interventions.push('Individual psychotherapy');
+    }
     interventions.push('Psychoeducation on GBV impacts and recovery');
-    interventions.push('Regular check-ins and support');
+    interventions.push('Social support enhancement');
   }
   
   return interventions;

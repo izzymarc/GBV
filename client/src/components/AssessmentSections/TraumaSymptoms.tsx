@@ -1,148 +1,238 @@
 import React, { useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useFormContext } from '@/lib/formContext';
-import { formOptions, traumaScoreInterpretation, traumaBondingScoreInterpretation } from '@/lib/assessmentUtils';
+import { useFormContext } from "@/lib/formContext";
+import { formOptions, traumaScoreInterpretation, traumaBondingScoreInterpretation } from "@/lib/assessmentUtils";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 const TraumaSymptoms: React.FC = () => {
   const { formData, updateFormData } = useFormContext();
-  const traumaData = formData.traumaSymptoms;
+  const { traumaSymptoms } = formData;
+  const { ptsdScores, bondingScores, ptsdTotalScore, bondingTotalScore } = traumaSymptoms;
 
-  // Calculate total scores whenever individual scores change
+  // Score options for PTSD symptoms
+  const ptsdScoreOptions = [
+    { value: 0, label: 'Not at all' },
+    { value: 1, label: 'A little bit' },
+    { value: 2, label: 'Moderately' },
+    { value: 3, label: 'Quite a bit' },
+    { value: 4, label: 'Extremely' }
+  ];
+
+  // Score options for trauma bonding
+  const bondingScoreOptions = [
+    { value: 0, label: 'Not at all' },
+    { value: 1, label: 'Rarely' },
+    { value: 2, label: 'Sometimes' },
+    { value: 3, label: 'Often' },
+    { value: 4, label: 'Very often' }
+  ];
+
+  // Calculate PTSD total score when scores change
   useEffect(() => {
-    const ptsdTotalScore = traumaData.ptsdScores.reduce((sum, score) => sum + score, 0);
-    const bondingTotalScore = traumaData.bondingScores.reduce((sum, score) => sum + score, 0);
-    
-    if (ptsdTotalScore !== traumaData.ptsdTotalScore || bondingTotalScore !== traumaData.bondingTotalScore) {
-      updateFormData('traumaSymptoms', { 
-        ptsdTotalScore, 
-        bondingTotalScore 
-      });
+    const newPtsdTotal = ptsdScores.reduce((sum, score) => sum + score, 0);
+    if (newPtsdTotal !== ptsdTotalScore) {
+      updateFormData('traumaSymptoms', { ptsdTotalScore: newPtsdTotal });
     }
-  }, [traumaData.ptsdScores, traumaData.bondingScores]);
+  }, [ptsdScores, ptsdTotalScore, updateFormData]);
 
-  const handlePtsdScoreChange = (index: number, value: number) => {
-    const newScores = [...traumaData.ptsdScores];
-    newScores[index] = value;
+  // Calculate trauma bonding total score when scores change
+  useEffect(() => {
+    const newBondingTotal = bondingScores.reduce((sum, score) => sum + score, 0);
+    if (newBondingTotal !== bondingTotalScore) {
+      updateFormData('traumaSymptoms', { bondingTotalScore: newBondingTotal });
+    }
+  }, [bondingScores, bondingTotalScore, updateFormData]);
+
+  // Handle PTSD score change
+  const handlePtsdScoreChange = (questionIndex: number, value: string) => {
+    const newScores = [...ptsdScores];
+    newScores[questionIndex] = parseInt(value);
     updateFormData('traumaSymptoms', { ptsdScores: newScores });
   };
 
-  const handleBondingScoreChange = (index: number, value: number) => {
-    const newScores = [...traumaData.bondingScores];
-    newScores[index] = value;
+  // Handle trauma bonding score change
+  const handleBondingScoreChange = (questionIndex: number, value: string) => {
+    const newScores = [...bondingScores];
+    newScores[questionIndex] = parseInt(value);
     updateFormData('traumaSymptoms', { bondingScores: newScores });
   };
 
-  const getBondingScoreLabel = (score: number): string => {
-    const labels = ['Not at all', 'Slightly', 'Moderately', 'Considerably', 'Extremely'];
-    return labels[score] || score.toString();
-  };
+  // Get interpretations
+  const ptsdResult = traumaScoreInterpretation(ptsdTotalScore);
+  const bondingResult = traumaBondingScoreInterpretation(bondingTotalScore);
 
-  const traumaResult = traumaScoreInterpretation(traumaData.ptsdTotalScore);
-  const bondingResult = traumaBondingScoreInterpretation(traumaData.bondingTotalScore);
+  // Progress bar colors
+  const ptsdProgressColor = {
+    'none': 'bg-green-500',
+    'moderate': 'bg-orange-500',
+    'severe': 'bg-red-500'
+  }[ptsdResult.severity];
+
+  const bondingProgressColor = {
+    'none': 'bg-green-500',
+    'mild': 'bg-yellow-500',
+    'moderate': 'bg-orange-500',
+    'severe': 'bg-red-500'
+  }[bondingResult.severity];
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg mb-6">
-      <CardContent className="px-4 py-5 sm:p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">5. Trauma Symptoms (PTSD Checklist - PCL-5)</h2>
-        <p className="text-gray-600 mb-6">
-          In the past month, how much have you been bothered by these problems?
-        </p>
-
-        {/* Scale explanation */}
-        <div className="mb-6 bg-blue-50 p-4 rounded-md">
-          <h3 className="text-sm font-medium text-blue-800">Rating scale:</h3>
-          <div className="mt-2 grid grid-cols-2 md:grid-cols-5 gap-y-2">
-            <div className="text-sm text-gray-600"><span className="font-medium">0:</span> Not at all</div>
-            <div className="text-sm text-gray-600"><span className="font-medium">1:</span> A little bit</div>
-            <div className="text-sm text-gray-600"><span className="font-medium">2:</span> Moderately</div>
-            <div className="text-sm text-gray-600"><span className="font-medium">3:</span> Quite a bit</div>
-            <div className="text-sm text-gray-600"><span className="font-medium">4:</span> Extremely</div>
-          </div>
-        </div>
-
+    <Card className="border-none shadow-none">
+      <CardContent className="pt-6">
         <div className="space-y-6">
-          <h3 className="text-md font-semibold text-gray-700">PTSD Symptoms</h3>
-          
-          {formOptions.traumaQuestions.map((question, index) => (
-            <div key={index} className="border-b border-gray-200 pb-4">
-              <div className="mb-3">
-                <Label htmlFor={`trauma-${index}`} className="block text-sm font-medium text-gray-700">
-                  {question}
-                </Label>
-              </div>
-              <RadioGroup
-                value={traumaData.ptsdScores[index].toString()}
-                onValueChange={(value) => handlePtsdScoreChange(index, parseInt(value))}
-                className="flex flex-wrap gap-y-2"
-              >
-                {[0, 1, 2, 3, 4].map((score) => (
-                  <div key={score} className="flex items-center mr-4">
-                    <RadioGroupItem value={score.toString()} id={`trauma-${index}-${score}`} />
-                    <Label htmlFor={`trauma-${index}-${score}`} className="ml-1 text-sm text-gray-700">
-                      {score}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-          ))}
-
-          <h3 className="text-md font-semibold text-gray-700 mt-8">Trauma Bonding Assessment</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            For the following questions, indicate how much you agree with each statement regarding your relationship with the perpetrator.
-          </p>
-
-          {formOptions.traumaBondingQuestions.map((question, index) => (
-            <div key={index} className="border-b border-gray-200 pb-4">
-              <div className="mb-3">
-                <Label htmlFor={`bonding-${index}`} className="block text-sm font-medium text-gray-700">
-                  {question}
-                </Label>
-              </div>
-              <RadioGroup
-                value={traumaData.bondingScores[index].toString()}
-                onValueChange={(value) => handleBondingScoreChange(index, parseInt(value))}
-                className="flex flex-wrap gap-y-2"
-              >
-                {[0, 1, 2, 3, 4].map((score) => (
-                  <div key={score} className="flex items-center mr-4">
-                    <RadioGroupItem value={score.toString()} id={`bonding-${index}-${score}`} />
-                    <Label htmlFor={`bonding-${index}-${score}`} className="ml-1 text-sm text-gray-700">
-                      {getBondingScoreLabel(score)}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-          ))}
-
-          {/* Trauma Scores Summary */}
-          <div className="bg-gray-50 p-4 rounded-md">
-            <div className="flex justify-between items-center">
-              <div className="text-sm font-medium text-gray-700">PCL-5 Score:</div>
-              <div className="text-lg font-bold text-primary-700">{traumaData.ptsdTotalScore}</div>
-            </div>
-            <div className="mt-2">
-              <div className="text-sm font-medium text-gray-700 mb-1">PTSD Indication:</div>
-              <div className={`text-sm ${traumaResult.color}`}>
-                {traumaResult.level}
-              </div>
-            </div>
-            <div className="mt-4">
-              <div className="text-sm font-medium text-gray-700">Trauma Bonding Score:</div>
-              <div className="text-lg font-bold text-primary-700">{traumaData.bondingTotalScore}</div>
-              <div className="mt-1">
-                <div className="text-sm font-medium text-gray-700 mb-1">Interpretation:</div>
-                <div className={`text-sm ${bondingResult.color}`}>
-                  {bondingResult.level}
-                </div>
-              </div>
-            </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Trauma Symptoms Assessment</h2>
+            <p className="text-gray-500 mb-4">
+              This assessment evaluates trauma symptoms and trauma bonding experiences
+            </p>
           </div>
+
+          <Tabs defaultValue="ptsd" className="w-full">
+            <TabsList className="grid grid-cols-2 mb-6">
+              <TabsTrigger value="ptsd">PTSD Symptoms</TabsTrigger>
+              <TabsTrigger value="bonding">Trauma Bonding</TabsTrigger>
+            </TabsList>
+
+            {/* PTSD Symptoms Tab */}
+            <TabsContent value="ptsd" className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h3 className="font-medium text-blue-800 mb-1">PTSD Screening (PCL-5 Modified)</h3>
+                <p className="text-sm text-blue-700">
+                  In the past month, how much have you been bothered by the following problems?
+                </p>
+              </div>
+
+              {formOptions.traumaQuestions.map((question, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <Label className="font-medium text-gray-900 mb-3 block">{question}</Label>
+                  <RadioGroup
+                    value={ptsdScores[index].toString()}
+                    onValueChange={(value) => handlePtsdScoreChange(index, value)}
+                    className="grid grid-cols-1 sm:grid-cols-5 gap-2"
+                  >
+                    {ptsdScoreOptions.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2 bg-gray-50 rounded p-2 hover:bg-gray-100 cursor-pointer">
+                        <RadioGroupItem value={option.value.toString()} id={`ptsd-${index}-${option.value}`} />
+                        <Label 
+                          htmlFor={`ptsd-${index}-${option.value}`} 
+                          className="text-sm cursor-pointer w-full"
+                        >
+                          {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              ))}
+
+              <div className="mt-6 border-t pt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold text-gray-900">PTSD Symptom Score: {ptsdTotalScore}/24</h3>
+                  <span className={ptsdResult.color}>{ptsdResult.level}</span>
+                </div>
+                
+                <Progress value={(ptsdTotalScore / 24) * 100} className={`h-2 ${ptsdProgressColor}`} />
+                
+                <div className="grid grid-cols-3 text-xs text-gray-500 mt-1">
+                  <div>Below threshold (0-19)</div>
+                  <div>Concerning symptoms (20-32)</div>
+                  <div className="text-right">Probable PTSD (33+)</div>
+                </div>
+
+                {ptsdResult.severity === 'severe' && (
+                  <Alert className="mt-4 border-red-300 bg-red-50 text-red-800">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Elevated PTSD Symptoms</AlertTitle>
+                    <AlertDescription>
+                      This score indicates symptoms consistent with PTSD diagnosis. 
+                      Recommend formal assessment by a trauma-informed mental health professional.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Trauma Bonding Tab */}
+            <TabsContent value="bonding" className="space-y-6">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                <h3 className="font-medium text-purple-800 mb-1">Trauma Bonding Assessment</h3>
+                <p className="text-sm text-purple-700">
+                  How often do you experience the following in relation to the person who harmed you?
+                </p>
+              </div>
+
+              {formOptions.traumaBondingQuestions.map((question, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 bg-white">
+                  <Label className="font-medium text-gray-900 mb-3 block">{question}</Label>
+                  <RadioGroup
+                    value={bondingScores[index].toString()}
+                    onValueChange={(value) => handleBondingScoreChange(index, value)}
+                    className="grid grid-cols-1 sm:grid-cols-5 gap-2"
+                  >
+                    {bondingScoreOptions.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-2 bg-gray-50 rounded p-2 hover:bg-gray-100 cursor-pointer">
+                        <RadioGroupItem value={option.value.toString()} id={`bonding-${index}-${option.value}`} />
+                        <Label 
+                          htmlFor={`bonding-${index}-${option.value}`} 
+                          className="text-sm cursor-pointer w-full"
+                        >
+                          {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              ))}
+
+              <div className="mt-6 border-t pt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold text-gray-900">Trauma Bonding Score: {bondingTotalScore}/40</h3>
+                  <span className={bondingResult.color}>{bondingResult.level}</span>
+                </div>
+                
+                <Progress value={(bondingTotalScore / 40) * 100} className={`h-2 ${bondingProgressColor}`} />
+                
+                <div className="grid grid-cols-4 text-xs text-gray-500 mt-1">
+                  <div>Minimal (0-9)</div>
+                  <div>Mild (10-19)</div>
+                  <div>Moderate (20-29)</div>
+                  <div className="text-right">Severe (30-40)</div>
+                </div>
+
+                {bondingResult.severity === 'severe' && (
+                  <Alert className="mt-4 border-red-300 bg-red-50 text-red-800">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Significant Trauma Bonding</AlertTitle>
+                    <AlertDescription>
+                      This score indicates severe trauma bonding which may complicate recovery.
+                      Specialized trauma-informed therapy approaches are recommended.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </CardContent>
+
+      <CardFooter className="flex flex-col items-start pt-6 border-t">
+        {/* Combined assessment summary */}
+        {(ptsdResult.severity === 'severe' || bondingResult.severity === 'severe') && (
+          <Alert className="mt-4 w-full border-red-300 bg-red-50 text-red-800">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Trauma-Focused Care Recommended</AlertTitle>
+            <AlertDescription>
+              Based on this assessment, the client would benefit from trauma-focused therapy approaches.
+              Consider referral to a therapist specialized in trauma recovery and GBV.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardFooter>
     </Card>
   );
 };

@@ -1,164 +1,225 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useFormContext } from '@/lib/formContext';
-import { formOptions } from '@/lib/assessmentUtils';
+import { useFormContext } from "@/lib/formContext";
+import { getRiskStatus } from "@/lib/assessmentUtils";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 
 const RiskAssessment: React.FC = () => {
   const { formData, updateFormData } = useFormContext();
-  const riskData = formData.riskAssessment;
+  const { riskAssessment } = formData;
 
-  const handleInputChange = (field: string, value: any) => {
-    updateFormData('riskAssessment', { [field]: value });
+  const handleRadioChange = (field: string, value: string) => {
+    updateFormData('riskAssessment', {
+      [field]: value
+    });
   };
 
-  const isInDanger = riskData.furtherHarmRisk === 'Immediate danger';
-  const hasSuicidalRisk = riskData.suicidalThoughts === 'Active thoughts with plan';
+  // Get risk status based on responses
+  const riskStatus = getRiskStatus(
+    riskAssessment.suicidalThoughts || '',
+    riskAssessment.furtherHarmRisk || ''
+  );
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg mb-6">
-      <CardContent className="px-4 py-5 sm:p-6">
-        <div className="flex items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-800">8. Risk Assessment</h2>
-          <div className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Critical Section</div>
-        </div>
-        
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
+    <Card className="border-none shadow-none">
+      <CardContent className="pt-6">
+        <div className="space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Risk Assessment</h2>
+              <p className="text-gray-500">Evaluating immediate safety concerns and risk factors</p>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">
-                This section assesses immediate safety concerns. If the survivor reports suicidal thoughts or imminent danger, immediate intervention may be necessary.
-              </p>
+            {riskStatus.severity !== 'low' && (
+              <Badge className={`text-sm px-3 py-1 ${
+                riskStatus.severity === 'high' || riskStatus.severity === 'critical' ? 'bg-red-500 hover:bg-red-600' :
+                'bg-orange-500 hover:bg-orange-600'
+              }`}>
+                {riskStatus.severity.charAt(0).toUpperCase() + riskStatus.severity.slice(1)} Risk
+              </Badge>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            {/* Suicidal Thoughts */}
+            <div className="space-y-3 border border-gray-200 rounded-lg p-4 bg-white">
+              <Label className="text-base font-medium text-gray-900">
+                Has the client had thoughts of suicide or self-harm in the past month? <span className="text-red-500">*</span>
+              </Label>
+              <RadioGroup
+                value={riskAssessment.suicidalThoughts || ''}
+                onValueChange={(value) => handleRadioChange('suicidalThoughts', value)}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="No thoughts of self-harm" id="suicide-none" />
+                  <Label htmlFor="suicide-none" className="cursor-pointer">No thoughts of self-harm</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Passive thoughts without plan" id="suicide-passive" />
+                  <Label htmlFor="suicide-passive" className="cursor-pointer">Passive thoughts without plan</Label>
+                </div>
+                <div className="flex items-center space-x-2 text-amber-800">
+                  <RadioGroupItem value="Thoughts with vague plan" id="suicide-vague" />
+                  <Label htmlFor="suicide-vague" className="cursor-pointer">Thoughts with vague plan</Label>
+                </div>
+                <div className="flex items-center space-x-2 text-red-800 font-medium">
+                  <RadioGroupItem value="Active thoughts with specific plan" id="suicide-active" />
+                  <Label htmlFor="suicide-active" className="cursor-pointer">Active thoughts with specific plan</Label>
+                </div>
+              </RadioGroup>
             </div>
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          {/* Thoughts of self-harm/suicide */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Thoughts of self-harm/suicide</Label>
-            <RadioGroup 
-              value={riskData.suicidalThoughts} 
-              onValueChange={(value) => handleInputChange('suicidalThoughts', value)}
-              className="space-y-2"
-            >
-              {formOptions.suicidalThoughtOptions.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <RadioGroupItem value={option} id={`suicide-${index}`} />
-                  <Label htmlFor={`suicide-${index}`} className="ml-2 text-sm text-gray-700">{option}</Label>
+            {/* Further Harm Risk */}
+            <div className="space-y-3 border border-gray-200 rounded-lg p-4 bg-white">
+              <Label className="text-base font-medium text-gray-900">
+                Is there a risk of further harm from the perpetrator? <span className="text-red-500">*</span>
+              </Label>
+              <RadioGroup
+                value={riskAssessment.furtherHarmRisk || ''}
+                onValueChange={(value) => handleRadioChange('furtherHarmRisk', value)}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="No contact with perpetrator" id="harm-none" />
+                  <Label htmlFor="harm-none" className="cursor-pointer">No contact with perpetrator</Label>
                 </div>
-              ))}
-            </RadioGroup>
-            
-            {/* Crisis Alert */}
-            {hasSuicidalRisk && (
-              <div className="mt-4 p-4 bg-red-100 border border-red-400 rounded-md text-red-700 text-sm">
-                <div className="flex">
-                  <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                  <div>
-                    <strong>CRISIS ALERT:</strong> 
-                    <p className="mt-1">The survivor has indicated active suicidal thoughts with a plan. This requires immediate crisis intervention.</p>
-                    <ul className="list-disc list-inside mt-2">
-                      <li>Do not leave the person alone</li>
-                      <li>Contact emergency services or crisis response team immediately</li>
-                      <li>Connect with a mental health professional as soon as possible</li>
-                    </ul>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Limited contact but feels safe" id="harm-limited" />
+                  <Label htmlFor="harm-limited" className="cursor-pointer">Limited contact but feels safe</Label>
                 </div>
-              </div>
-            )}
-          </div>
+                <div className="flex items-center space-x-2 text-amber-800">
+                  <RadioGroupItem value="Ongoing contact with concerns" id="harm-concerns" />
+                  <Label htmlFor="harm-concerns" className="cursor-pointer">Ongoing contact with concerns</Label>
+                </div>
+                <div className="flex items-center space-x-2 text-red-800 font-medium">
+                  <RadioGroupItem value="Immediate danger from perpetrator" id="harm-immediate" />
+                  <Label htmlFor="harm-immediate" className="cursor-pointer">Immediate danger from perpetrator</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-          {/* Feeling of safety */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Current feeling of safety</Label>
-            <RadioGroup 
-              value={riskData.safetyFeeling} 
-              onValueChange={(value) => handleInputChange('safetyFeeling', value)}
-              className="space-y-2"
-            >
-              {formOptions.safetyFeelingOptions.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <RadioGroupItem value={option} id={`safety-${option}`} />
-                  <Label htmlFor={`safety-${option}`} className="ml-2 text-sm text-gray-700">{option}</Label>
+            {/* Safety Feeling */}
+            <div className="space-y-3 border border-gray-200 rounded-lg p-4 bg-white">
+              <Label className="text-base font-medium text-gray-900">
+                How safe does the client feel in their current living situation?
+              </Label>
+              <RadioGroup
+                value={riskAssessment.safetyFeeling || ''}
+                onValueChange={(value) => handleRadioChange('safetyFeeling', value)}
+                className="flex flex-col space-y-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Very safe" id="safety-very" />
+                  <Label htmlFor="safety-very" className="cursor-pointer">Very safe</Label>
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Risk of further harm */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Risk of further harm from perpetrator</Label>
-            <RadioGroup 
-              value={riskData.furtherHarmRisk} 
-              onValueChange={(value) => handleInputChange('furtherHarmRisk', value)}
-              className="space-y-2"
-            >
-              {formOptions.furtherHarmRiskOptions.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <RadioGroupItem value={option} id={`risk-${option}`} />
-                  <Label htmlFor={`risk-${option}`} className="ml-2 text-sm text-gray-700">{option}</Label>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Mostly safe" id="safety-mostly" />
+                  <Label htmlFor="safety-mostly" className="cursor-pointer">Mostly safe</Label>
                 </div>
-              ))}
-            </RadioGroup>
-            
-            {/* Danger Alert */}
-            {isInDanger && (
-              <div className="mt-4 p-4 bg-red-100 border border-red-400 rounded-md text-red-700 text-sm">
-                <div className="flex">
-                  <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                  <div>
-                    <strong>DANGER ALERT:</strong> 
-                    <p className="mt-1">The survivor has indicated they are in immediate danger. This requires urgent safety planning and potential intervention.</p>
-                    <ul className="list-disc list-inside mt-2">
-                      <li>Contact local law enforcement if immediate physical danger exists</li>
-                      <li>Connect with domestic violence/GBV emergency services</li>
-                      <li>Discuss and implement an immediate safety plan</li>
-                    </ul>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Somewhat unsafe" id="safety-somewhat" />
+                  <Label htmlFor="safety-somewhat" className="cursor-pointer">Somewhat unsafe</Label>
                 </div>
-              </div>
-            )}
-          </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Very unsafe" id="safety-very-unsafe" />
+                  <Label htmlFor="safety-very-unsafe" className="cursor-pointer">Very unsafe</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-          {/* Need for safety plan */}
-          <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">Need for safety plan</Label>
-            <RadioGroup 
-              value={riskData.safetyPlanNeeded} 
-              onValueChange={(value) => handleInputChange('safetyPlanNeeded', value as 'Yes' | 'No')}
-              className="space-y-2"
-            >
-              <div className="flex items-center">
-                <RadioGroupItem value="Yes" id="safety-plan-yes" />
-                <Label htmlFor="safety-plan-yes" className="ml-2 text-sm text-gray-700">Yes</Label>
-              </div>
-              <div className="flex items-center">
-                <RadioGroupItem value="No" id="safety-plan-no" />
-                <Label htmlFor="safety-plan-no" className="ml-2 text-sm text-gray-700">No</Label>
-              </div>
-            </RadioGroup>
-
-            {riskData.safetyPlanNeeded === 'Yes' && (
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-                <h4 className="text-sm font-medium text-amber-800 mb-2">Safety Plan Resources</h4>
-                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  <li>Identify trusted contacts for emergencies</li>
-                  <li>Create a "go bag" with essential documents and necessities</li>
-                  <li>Establish code words with trusted friends/family</li>
-                  <li>Map safe locations (police stations, shelters, hospitals)</li>
-                  <li>Document evidence of abuse (if safe to do so)</li>
-                </ul>
-              </div>
-            )}
+            {/* Safety Plan */}
+            <div className="space-y-3 border border-gray-200 rounded-lg p-4 bg-white">
+              <Label className="text-base font-medium text-gray-900">
+                Does the client need a safety plan?
+              </Label>
+              <RadioGroup
+                value={riskAssessment.safetyPlanNeeded || ''}
+                onValueChange={(value) => handleRadioChange('safetyPlanNeeded', value)}
+                className="flex space-x-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Yes" id="plan-yes" />
+                  <Label htmlFor="plan-yes" className="cursor-pointer">Yes</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="No" id="plan-no" />
+                  <Label htmlFor="plan-no" className="cursor-pointer">No</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
         </div>
       </CardContent>
+
+      <CardFooter className="flex flex-col items-start pt-6 border-t">
+        {/* Risk Alerts */}
+        {(riskStatus.severity === 'high' || riskStatus.severity === 'critical') && (
+          <Alert className="w-full border-red-300 bg-red-50 text-red-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>High Risk Alert</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">
+                Immediate intervention is recommended based on the client's responses. 
+                Consider the following actions:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {riskAssessment.suicidalThoughts === 'Active thoughts with specific plan' && (
+                  <li>Contact emergency mental health services or crisis intervention</li>
+                )}
+                {riskAssessment.furtherHarmRisk === 'Immediate danger from perpetrator' && (
+                  <li>Develop an immediate safety plan and consider emergency shelter options</li>
+                )}
+                {riskAssessment.safetyFeeling === 'Very unsafe' && (
+                  <li>Evaluate current living situation safety and alternatives</li>
+                )}
+                <li>Consider hospitalization or other intensive intervention if needed</li>
+                <li>Do not leave the client alone until safety is established</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {riskStatus.severity === 'moderate' && (
+          <Alert className="w-full border-orange-300 bg-orange-50 text-orange-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Moderate Risk Alert</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">
+                Increased monitoring and intervention is recommended. Consider:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Creating a detailed safety plan</li>
+                <li>Scheduled check-ins and increased session frequency</li>
+                <li>Connecting with support resources (shelter, legal assistance, etc.)</li>
+                <li>Providing crisis hotline numbers and emergency contacts</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {riskAssessment.safetyPlanNeeded === 'Yes' && (
+          <Alert className="mt-4 w-full border-blue-300 bg-blue-50 text-blue-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Safety Plan Needed</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">
+                A safety plan should be developed with the client, including:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Identification of warning signs/triggers</li>
+                <li>Coping strategies and distraction techniques</li>
+                <li>People to contact for support (personal and professional)</li>
+                <li>Steps to create a safe environment (removing means of self-harm)</li>
+                <li>Emergency contact information and crisis resources</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardFooter>
     </Card>
   );
 };
