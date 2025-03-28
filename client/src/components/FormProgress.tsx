@@ -73,40 +73,40 @@ const FormProgress: React.FC<FormProgressProps> = ({ totalSteps }) => {
   };
 
   return (
-    <div className="py-3 px-4 bg-white border-b">
+    <div className="py-4 px-4 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between max-w-6xl mx-auto">
         <div className="hidden lg:flex items-center justify-between w-full">
           {Array.from({ length: totalSteps }).map((_, index) => (
-            <React.Fragment key={index}>
+            <React.Fragment key={`step-${index}`}>
               {/* Step indicator with icon */}
               <div
                 onClick={() => handleStepClick(index)}
                 className={cn(
-                  "flex flex-col items-center cursor-pointer transition-colors",
-                  isCompleted ? "cursor-not-allowed" : "hover:text-primary-700",
-                  currentStep === index ? "text-primary-700" : "text-gray-500"
+                  "flex flex-col items-center cursor-pointer transition-colors px-2 py-1 rounded-md",
+                  isCompleted ? "cursor-not-allowed" : "hover:bg-gray-50 hover:text-primary-700",
+                  currentStep === index ? "bg-blue-50 text-primary-700 border border-blue-200" : "text-gray-600"
                 )}
               >
-                <div className="flex items-center mb-1">
+                <div className="flex items-center mb-2">
                   {hasSectionData(index) ? (
                     hasCriticalValue(index) ? (
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <AlertTriangle className="h-6 w-6 text-red-500" />
                     ) : (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-6 w-6 text-green-500" />
                     )
                   ) : (
                     <Circle 
                       className={cn(
-                        "h-5 w-5",
-                        currentStep === index ? "text-primary-500" : "text-gray-300"
+                        "h-6 w-6",
+                        currentStep === index ? "text-primary-600 fill-blue-100" : "text-gray-400"
                       )}
                     />
                   )}
                 </div>
                 <span 
                   className={cn(
-                    "text-xs font-medium whitespace-nowrap",
-                    currentStep === index ? "text-primary-700" : "text-gray-500"
+                    "text-sm font-medium whitespace-nowrap text-center",
+                    currentStep === index ? "text-primary-700 font-semibold" : "text-gray-600"
                   )}
                 >
                   {sectionNames[index]}
@@ -117,7 +117,7 @@ const FormProgress: React.FC<FormProgressProps> = ({ totalSteps }) => {
               {index < totalSteps - 1 && (
                 <div 
                   className={cn(
-                    "w-full h-0.5 mx-2 rounded-full max-w-10", 
+                    "w-full h-1 mx-2 rounded-full max-w-12", 
                     index < currentStep ? "bg-primary-500" : "bg-gray-200"
                   )}
                 />
@@ -126,12 +126,17 @@ const FormProgress: React.FC<FormProgressProps> = ({ totalSteps }) => {
           ))}
         </div>
         
-        {/* Mobile view: just show current step / total */}
-        <div className="lg:hidden flex items-center justify-between w-full">
-          <div className="text-gray-600 font-medium">
-            <span className="text-primary-700">{currentStep + 1}</span> of {totalSteps}
+        {/* Mobile view: just show current step / total with clearer section name */}
+        <div className="lg:hidden flex flex-col w-full">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-gray-700 font-semibold">
+              Section <span className="text-primary-700 font-bold">{currentStep + 1}</span> of {totalSteps}
+            </div>
+            <div className="text-sm bg-blue-50 text-primary-700 font-medium px-3 py-1 rounded-full border border-blue-200">
+              {currentStep + 1}/{totalSteps}
+            </div>
           </div>
-          <div className="text-sm text-gray-600 font-medium truncate pl-4 pr-2">
+          <div className="text-lg text-gray-800 font-semibold py-1">
             {sectionNames[currentStep]}
           </div>
         </div>

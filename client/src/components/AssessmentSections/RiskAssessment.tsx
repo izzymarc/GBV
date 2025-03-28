@@ -158,15 +158,15 @@ const RiskAssessment: React.FC = () => {
       <CardFooter className="flex flex-col items-start pt-6 border-t">
         {/* Risk Alerts */}
         {(riskStatus.severity === 'high' || riskStatus.severity === 'critical') && (
-          <Alert className="w-full border-red-300 bg-red-50 text-red-800">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>High Risk Alert</AlertTitle>
+          <Alert className="w-full border-red-300 bg-red-50">
+            <AlertTriangle className="h-4 w-4 enhanced-red-text" />
+            <AlertTitle className="enhanced-red-text">High Risk Alert</AlertTitle>
             <AlertDescription>
-              <p className="mb-2">
+              <p className="mb-2 enhanced-red-text">
                 Immediate intervention is recommended based on the client's responses. 
                 Consider the following actions:
               </p>
-              <ul className="list-disc pl-5 space-y-1">
+              <ul className="list-disc pl-5 space-y-1 enhanced-red-text">
                 {riskAssessment.suicidalThoughts === 'Active thoughts with specific plan' && (
                   <li>Contact emergency mental health services or crisis intervention</li>
                 )}
@@ -184,14 +184,14 @@ const RiskAssessment: React.FC = () => {
         )}
 
         {riskStatus.severity === 'moderate' && (
-          <Alert className="w-full border-orange-300 bg-orange-50 text-orange-800">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Moderate Risk Alert</AlertTitle>
+          <Alert className="w-full border-orange-300 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 enhanced-orange-text" />
+            <AlertTitle className="enhanced-orange-text">Moderate Risk Alert</AlertTitle>
             <AlertDescription>
-              <p className="mb-2">
+              <p className="mb-2 enhanced-orange-text">
                 Increased monitoring and intervention is recommended. Consider:
               </p>
-              <ul className="list-disc pl-5 space-y-1">
+              <ul className="list-disc pl-5 space-y-1 enhanced-orange-text">
                 <li>Creating a detailed safety plan</li>
                 <li>Scheduled check-ins and increased session frequency</li>
                 <li>Connecting with support resources (shelter, legal assistance, etc.)</li>
@@ -202,14 +202,14 @@ const RiskAssessment: React.FC = () => {
         )}
 
         {riskAssessment.safetyPlanNeeded === 'Yes' && (
-          <Alert className="mt-4 w-full border-blue-300 bg-blue-50 text-blue-800">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Safety Plan Needed</AlertTitle>
+          <Alert className="mt-4 w-full border-blue-300 enhanced-blue-bg">
+            <AlertTriangle className="h-4 w-4 enhanced-blue-text" />
+            <AlertTitle className="enhanced-blue-text">Safety Plan Needed</AlertTitle>
             <AlertDescription>
-              <p className="mb-2">
+              <p className="mb-2 enhanced-blue-text">
                 A safety plan should be developed with the client, including:
               </p>
-              <ul className="list-disc pl-5 space-y-1">
+              <ul className="list-disc pl-5 space-y-1 enhanced-blue-text">
                 <li>Identification of warning signs/triggers</li>
                 <li>Coping strategies and distraction techniques</li>
                 <li>People to contact for support (personal and professional)</li>

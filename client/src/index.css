@@ -11,3 +11,30 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Custom color and contrast enhancement */
+  .enhanced-blue-bg {
+    @apply bg-blue-100 border-blue-300;
+  }
+  
+  .enhanced-blue-text {
+    @apply text-blue-900 font-medium;
+  }
+  
+  .enhanced-red-text {
+    @apply text-red-800 font-semibold;
+  }
+  
+  .enhanced-orange-text {
+    @apply text-orange-800 font-semibold;
+  }
+  
+  .enhanced-yellow-text {
+    @apply text-yellow-800 font-semibold;
+  }
+  
+  .enhanced-green-text {
+    @apply text-green-800 font-semibold;
+  }
+}

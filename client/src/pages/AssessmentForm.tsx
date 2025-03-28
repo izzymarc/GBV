@@ -189,15 +189,15 @@ const AssessmentForm: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={handlePrevious}
-                    className="flex items-center"
+                    className="flex items-center font-semibold border-2 border-gray-300 hover:bg-gray-100"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    {currentStep === 0 ? 'Back to Home' : 'Previous'}
+                    {currentStep === 0 ? 'Back to Home' : 'Previous Section'}
                   </Button>
 
                   <div className="flex items-center space-x-3">
                     {/* Current step indicator for mobile */}
-                    <span className="text-xs text-gray-500 hidden sm:inline-block">
+                    <span className="text-sm text-gray-700 font-medium hidden sm:inline-block">
                       Step {currentStep + 1} of {TOTAL_STEPS}
                     </span>
                     
@@ -205,25 +205,25 @@ const AssessmentForm: React.FC = () => {
                       <Button
                         onClick={handleNext}
                         disabled={isSaving}
-                        className="bg-primary-600 hover:bg-primary-700"
+                        className="bg-primary-700 hover:bg-primary-800 text-white font-semibold shadow-md px-5 py-6"
                       >
                         {isSaving ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : null}
-                        Next Section
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        Save & Continue to Next Section
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     ) : (
                       <Button
                         onClick={handleComplete}
                         disabled={isSaving}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md px-5 py-6"
                       >
                         {isSaving ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : null}
-                        Complete Assessment
-                        <Check className="ml-2 h-4 w-4" />
+                        Save & Complete Assessment
+                        <Check className="ml-2 h-5 w-5" />
                       </Button>
                     )}
                   </div>

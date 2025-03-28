@@ -167,30 +167,30 @@ const ProgramExpectations: React.FC = () => {
 
       <CardFooter className="flex flex-col items-start pt-6 border-t">
         {/* Professional Recommendations */}
-        <div className="w-full p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="w-full p-4 enhanced-blue-bg border rounded-lg">
           <div className="flex items-start space-x-3">
-            <Lightbulb className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-blue-800 mb-2">Professional Recommendations</h3>
+              <h3 className="font-semibold enhanced-blue-text mb-2">Professional Recommendations</h3>
               
               {recommendedInterventions.length > 0 ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-blue-700 mb-1">
+                  <p className="text-sm enhanced-blue-text mb-1">
                     Based on the assessment, consider the following interventions:
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-blue-700">
+                  <ul className="list-disc pl-5 space-y-1 text-sm enhanced-blue-text">
                     {recommendedInterventions.map((intervention, index) => (
                       <li key={index}>{intervention}</li>
                     ))}
                   </ul>
                 </div>
               ) : (
-                <p className="text-sm text-blue-700">
+                <p className="text-sm enhanced-blue-text">
                   Complete the Risk Assessment section for tailored intervention recommendations.
                 </p>
               )}
               
-              <p className="text-sm text-blue-700 mt-3">
+              <p className="text-sm enhanced-blue-text mt-3">
                 These recommendations should be discussed with the client and incorporated into the 
                 treatment plan based on the client's preferences and priorities.
               </p>
