@@ -195,7 +195,7 @@ const Admin: React.FC = () => {
       try {
         // In production, the API URL should be adjusted for Netlify functions
         const apiUrl = import.meta.env.PROD 
-          ? '/.netlify/functions/api/api/admin/assessments' 
+          ? '/.netlify/functions/api/admin/assessments' 
           : '/api/admin/assessments';
         
         console.log('Fetching assessments from:', apiUrl);
@@ -266,7 +266,7 @@ const Admin: React.FC = () => {
     try {
       // In production, the API URL should be adjusted for Netlify functions
       const apiUrl = import.meta.env.PROD 
-        ? '/.netlify/functions/api/api/health' 
+        ? '/.netlify/functions/api/health' 
         : '/api/health';
       
       console.log('Checking API health from:', apiUrl);
@@ -683,7 +683,7 @@ const Admin: React.FC = () => {
                   className="gap-2"
                   asChild
                 >
-                  <a href={import.meta.env.PROD ? "/.netlify/functions/api/api/health" : "/api/health"} target="_blank" rel="noopener noreferrer">
+                  <a href={import.meta.env.PROD ? "/.netlify/functions/api/health" : "/api/health"} target="_blank" rel="noopener noreferrer">
                     <ServerCrash className="h-4 w-4" />
                     Direct API Check
                   </a>
