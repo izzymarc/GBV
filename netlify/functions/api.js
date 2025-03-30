@@ -13,11 +13,27 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*',
-  credentials: true
+  // This configuration is more compatible with Netlify's environment
+  // We allow the netlify domain and any custom domains you might use
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc)
+    if(!origin) return callback(null, true);
+    
+    // Allow all origins in development, but could be restricted in production
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add debug middleware to log all requests
+app.use((req, res, next) => {
+  console.log(`[Netlify Function] ${req.method} ${req.url}`);
+  next();
+});
 
 // Initialize database connection
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -154,8 +170,69 @@ app.get('/api', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    // First check if DATABASE_URL is configured
+    if (!process.env.DATABASE_URL) {
+      return res.json({ 
+        status: "warning",
+        message: "DATABASE_URL environment variable is not configured",
+        timestamp: new Date().toISOString(),
+        databaseConnected: false
+      });
+    }
+    
+    // Test database connection by running a simple query
+    try {
+      // Check if we can fetch assessments as a quick test
+      await storage.getAllAssessments();
+      
+      res.json({ 
+        status: "ok",
+        message: "API server is running and database is connected",
+        timestamp: new Date().toISOString(),
+        databaseConnected: true
+      });
+    } catch (dbError) {
+      console.error("Database connection test failed:", dbError);
+      res.json({ 
+        status: "error",
+        message: "Database connection failed: " + (dbError.message || "Unknown error"),
+        timestamp: new Date().toISOString(),
+        databaseConnected: false
+      });
+    }
+  } catch (error) {
+    console.error("Health check error:", error);
+    res.status(500).json({ 
+      status: "error",
+      message: "Health check failed",
+      timestamp: new Date().toISOString(),
+      databaseConnected: false,
+      error: error.message || "Unknown error"
+    });
+  }
+});
+
+// Duplicate health check endpoint for compatibility
+app.get('/api/healthcheck', async (req, res) => {
+  try {
+    // Forward to the main health check response
+    const response = await new Promise((resolve) => {
+      app._router.handle(
+        { ...req, url: "/api/health", path: "/api/health" },
+        { ...res, end: resolve }
+      );
+    });
+    res.json(response);
+  } catch (error) {
+    res.status(500).json({ 
+      status: "error",
+      message: "Health check failed",
+      timestamp: new Date().toISOString(),
+      databaseConnected: false
+    });
+  }
 });
 
 // Assessment Routes
@@ -205,11 +282,39 @@ app.put('/api/assessments/:id', async (req, res) => {
 // Admin Routes
 app.get('/api/admin/assessments', async (req, res) => {
   try {
+    console.log("[Admin API] Attempting to export assessment data...");
+    
+    // Test the database connection before proceeding
+    try {
+      await pool.query('SELECT NOW()');
+      console.log("[Admin API] Database connection successful");
+    } catch (dbError) {
+      console.error("[Admin API] Database connection error:", dbError);
+      return res.status(500).json({ 
+        message: 'Database connection error', 
+        error: dbError.message,
+        details: "Check your DATABASE_URL environment variable in Netlify settings"
+      });
+    }
+    
     const data = await storage.exportAssessmentData();
+    console.log("[Admin API] Successfully retrieved assessment data:", 
+      JSON.stringify({
+        totalCount: data.totalCount,
+        completeCount: data.completeCount,
+        incompleteCount: data.incompleteCount,
+        dataLength: data.data ? data.data.length : 0
+      })
+    );
+    
     res.json(data);
   } catch (err) {
-    console.error('Error exporting assessment data:', err);
-    res.status(500).json({ message: 'Error exporting assessment data' });
+    console.error('[Admin API] Error exporting assessment data:', err);
+    res.status(500).json({ 
+      message: 'Error exporting assessment data',
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 

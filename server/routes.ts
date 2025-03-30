@@ -106,22 +106,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health check endpoints
-  app.get("/api/health", (req, res) => {
-    res.json({ 
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      databaseConnected: process.env.DATABASE_URL ? true : false
-    });
+  // Health check endpoints with real database connection test
+  app.get("/api/health", async (req, res) => {
+    try {
+      // First check if DATABASE_URL is configured
+      if (!process.env.DATABASE_URL) {
+        return res.json({ 
+          status: "warning",
+          message: "DATABASE_URL environment variable is not configured",
+          timestamp: new Date().toISOString(),
+          databaseConnected: false
+        });
+      }
+      
+      // Test database connection by running a simple query
+      try {
+        // Check if we can fetch a user or assessment as a quick test
+        await storage.getAllAssessments();
+        
+        res.json({ 
+          status: "ok",
+          message: "API server is running and database is connected",
+          timestamp: new Date().toISOString(),
+          databaseConnected: true
+        });
+      } catch (dbError) {
+        console.error("Database connection test failed:", dbError);
+        res.json({ 
+          status: "error",
+          message: "Database connection failed: " + (dbError instanceof Error ? dbError.message : "Unknown error"),
+          timestamp: new Date().toISOString(),
+          databaseConnected: false
+        });
+      }
+    } catch (error) {
+      console.error("Health check error:", error);
+      res.status(500).json({ 
+        status: "error",
+        message: "Health check failed",
+        timestamp: new Date().toISOString(),
+        databaseConnected: false,
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
   });
   
   // Duplicate health check endpoint with /healthcheck path for compatibility
-  app.get("/api/healthcheck", (req, res) => {
-    res.json({ 
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      databaseConnected: process.env.DATABASE_URL ? true : false
-    });
+  app.get("/api/healthcheck", async (req, res) => {
+    try {
+      // Forward to the main health check endpoint
+      const response = await new Promise<any>((resolve) => {
+        app._router.handle(
+          { ...req, url: "/api/health", path: "/api/health" } as any,
+          { ...res, end: resolve } as any
+        );
+      });
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ 
+        status: "error",
+        message: "Health check failed",
+        timestamp: new Date().toISOString(),
+        databaseConnected: false
+      });
+    }
   });
 
   // Database migrations endpoint (would implement in production with proper auth)

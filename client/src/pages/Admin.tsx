@@ -23,18 +23,20 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
+  ActivitySquare,
+  BarChart3, 
   ChevronDown, 
   ChevronUp, 
-  Download, 
-  Filter,
-  Search,
-  FileDown,
   Clipboard,
-  BarChart3,
+  Download, 
+  FileDown,
   FileText,
+  Filter,
+  ListFilter,
+  Search,
+  ServerCrash,
   ShieldCheck,
-  UserCheck,
-  ListFilter
+  UserCheck
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Assessment, FormData } from '@shared/schema';
@@ -183,18 +185,41 @@ const downloadCSV = (data: string, filename: string) => {
 const Admin: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCompleted, setFilterCompleted] = useState<boolean | null>(null);
+  const [healthStatus, setHealthStatus] = useState<{ status: string; timestamp: string; databaseConnected: boolean } | null>(null);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
 
-  // Fetch all assessments from the API
+  // Fetch all assessments from the API with improved error handling
   const { data: apiResponse, isLoading, error } = useQuery<AdminAssessmentResponse>({
     queryKey: ['/api/admin/assessments'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/assessments', {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch assessments');
+      try {
+        // In production, the API URL should be adjusted for Netlify functions
+        const apiUrl = import.meta.env.PROD 
+          ? '/.netlify/functions/api/api/admin/assessments' 
+          : '/api/admin/assessments';
+        
+        console.log('Fetching assessments from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          // Using 'same-origin' instead of 'include' for Netlify deployment
+          credentials: 'same-origin' 
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Failed to fetch assessments: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Successfully fetched assessment data');
+        return data as AdminAssessmentResponse;
+      } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
       }
-      return await response.json() as AdminAssessmentResponse;
     },
   });
 
@@ -233,6 +258,42 @@ const Admin: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  // Handler for checking API health
+  const checkApiHealth = async () => {
+    setIsCheckingHealth(true);
+    try {
+      // In production, the API URL should be adjusted for Netlify functions
+      const apiUrl = import.meta.env.PROD 
+        ? '/.netlify/functions/api/api/health' 
+        : '/api/health';
+      
+      console.log('Checking API health from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        credentials: 'same-origin'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Health check failed:', errorText);
+        throw new Error(`Health check failed: ${response.status} ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Health check result:', data);
+      setHealthStatus(data);
+    } catch (error) {
+      console.error('Health check error:', error);
+      setHealthStatus({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        databaseConnected: false
+      });
+    } finally {
+      setIsCheckingHealth(false);
+    }
   };
 
   return (
@@ -344,8 +405,71 @@ const Admin: React.FC = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
                     </div>
                   ) : error ? (
-                    <div className="text-center py-8 text-red-500">
-                      Error loading assessments. Please try again.
+                    <div className="text-center py-8">
+                      <div className="text-red-500 font-medium mb-2">
+                        Error loading assessments. Please try again.
+                      </div>
+                      <div className="text-sm text-gray-600 max-w-2xl mx-auto">
+                        <p className="mb-2"><strong>Error details:</strong></p>
+                        <pre className="bg-gray-100 p-3 rounded overflow-auto text-left">
+                          {error instanceof Error ? error.message : JSON.stringify(error, null, 2)}
+                        </pre>
+                        <p className="mt-4 text-gray-500">
+                          Possible solutions:
+                        </p>
+                        <ul className="list-disc pl-5 text-left mt-2">
+                          <li>Verify DATABASE_URL environment variable is set in Netlify settings</li>
+                          <li>Check that your database is accessible from Netlify</li>
+                          <li>Ensure database tables are properly set up</li>
+                        </ul>
+                        
+                        <div className="mt-6">
+                          <Button 
+                            onClick={checkApiHealth}
+                            disabled={isCheckingHealth}
+                            variant="outline"
+                            className="gap-2"
+                          >
+                            {isCheckingHealth ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                                Checking...
+                              </>
+                            ) : (
+                              <>
+                                {healthStatus ? (
+                                  healthStatus.databaseConnected ? (
+                                    <div className="h-4 w-4 bg-green-500 rounded-full"></div>
+                                  ) : (
+                                    <div className="h-4 w-4 bg-red-500 rounded-full"></div>
+                                  )
+                                ) : null}
+                                Check API Connection
+                              </>
+                            )}
+                          </Button>
+                          
+                          {healthStatus && (
+                            <div className={`mt-4 p-4 rounded ${healthStatus.databaseConnected ? 'bg-green-50' : 'bg-red-50'}`}>
+                              <p className="font-medium">
+                                API Status: 
+                                <span className={healthStatus.databaseConnected ? 'text-green-600' : 'text-red-600'}>
+                                  {healthStatus.status}
+                                </span>
+                              </p>
+                              <p className="text-sm mt-1">
+                                Database Connection: 
+                                <span className={healthStatus.databaseConnected ? 'text-green-600' : 'text-red-600'}>
+                                  {healthStatus.databaseConnected ? ' Connected' : ' Disconnected'}
+                                </span>
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Last checked: {new Date(healthStatus.timestamp).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <Table>
@@ -516,9 +640,76 @@ const Admin: React.FC = () => {
 
       <footer className="bg-white border-t border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm text-gray-500">
-            <p>GBV Psychosocial Assessment Tool - Admin Dashboard</p>
-            <p className="mt-1">© {new Date().getFullYear()} All rights reserved</p>
+          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+            <div className="text-sm text-gray-500 mb-4 md:mb-0">
+              <p>GBV Psychosocial Assessment Tool - Admin Dashboard</p>
+              <p className="mt-1">© {new Date().getFullYear()} All rights reserved</p>
+            </div>
+            
+            <div className="flex flex-col items-start">
+              <p className="text-sm font-medium text-gray-700 mb-2">System Tools</p>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={checkApiHealth}
+                  disabled={isCheckingHealth}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  {isCheckingHealth ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      {healthStatus ? (
+                        healthStatus.databaseConnected ? (
+                          <div className="h-3 w-3 bg-green-500 rounded-full"></div>
+                        ) : (
+                          <div className="h-3 w-3 bg-red-500 rounded-full"></div>
+                        )
+                      ) : (
+                        <ActivitySquare className="h-4 w-4" />
+                      )}
+                      Check API Status
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  asChild
+                >
+                  <a href={import.meta.env.PROD ? "/.netlify/functions/api/api/health" : "/api/health"} target="_blank" rel="noopener noreferrer">
+                    <ServerCrash className="h-4 w-4" />
+                    Direct API Check
+                  </a>
+                </Button>
+              </div>
+              
+              {healthStatus && (
+                <div className={`mt-3 p-3 rounded text-sm ${healthStatus.databaseConnected ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                  <p className="font-medium">
+                    API Status: 
+                    <span className={healthStatus.databaseConnected ? 'text-green-600 ml-1' : 'text-red-600 ml-1'}>
+                      {healthStatus.status}
+                    </span>
+                  </p>
+                  <p className="text-xs mt-1">
+                    Database: 
+                    <span className={healthStatus.databaseConnected ? 'text-green-600 ml-1' : 'text-red-600 ml-1'}>
+                      {healthStatus.databaseConnected ? 'Connected' : 'Disconnected'}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Last checked: {new Date(healthStatus.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </footer>
