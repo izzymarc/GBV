@@ -22,22 +22,21 @@ app.use(express.urlencoded({ extended: false }));
 // Initialize database connection
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-// Define schema (simplified version for Netlify)
-// In a real deployment, you would import your schema from a shared file
-// This is just a placeholder to demonstrate the concept
-const users = {
-  id: { name: 'id' },
-  username: { name: 'username' },
-  password: { name: 'password' },
-  isAdmin: { name: 'is_admin' }
-};
-
-const assessments = {
-  id: { name: 'id' },
-  createdAt: { name: 'created_at' },
-  updatedAt: { name: 'updated_at' },
-  completed: { name: 'completed' },
-  formData: { name: 'form_data' }
+// Define schema for Netlify functions
+const schema = {
+  users: {
+    id: { name: 'id' },
+    username: { name: 'username' },
+    password: { name: 'password' },
+    isAdmin: { name: 'is_admin' }
+  },
+  assessments: {
+    id: { name: 'id' },
+    createdAt: { name: 'created_at' },
+    updatedAt: { name: 'updated_at' },
+    completed: { name: 'completed' },
+    formData: { name: 'form_data' }
+  }
 };
 
 // Database Logic
@@ -46,61 +45,101 @@ const db = drizzle(pool);
 // Basic storage
 class PostgresStorage {
   async getUser(id) {
-    const [user] = await db.select().from('users').where(eq('id', id));
-    return user || undefined;
+    try {
+      const [user] = await db.select().from('users').where(eq('users.id', id));
+      return user || undefined;
+    } catch (error) {
+      console.error('Database error in getUser:', error);
+      throw error;
+    }
   }
 
   async getUserByUsername(username) {
-    const [user] = await db.select().from('users').where(eq('username', username));
-    return user || undefined;
+    try {
+      const [user] = await db.select().from('users').where(eq('users.username', username));
+      return user || undefined;
+    } catch (error) {
+      console.error('Database error in getUserByUsername:', error);
+      throw error;
+    }
   }
 
   async createUser(insertUser) {
-    const [user] = await db.insert('users').values(insertUser).returning();
-    return user;
+    try {
+      const [user] = await db.insert('users').values(insertUser).returning();
+      return user;
+    } catch (error) {
+      console.error('Database error in createUser:', error);
+      throw error;
+    }
   }
 
   async getAssessment(id) {
-    const [assessment] = await db.select().from('assessments').where(eq('id', id));
-    return assessment || undefined;
+    try {
+      const [assessment] = await db.select().from('assessments').where(eq('assessments.id', id));
+      return assessment || undefined;
+    } catch (error) {
+      console.error('Database error in getAssessment:', error);
+      throw error;
+    }
   }
 
   async getAllAssessments() {
-    return await db.select().from('assessments');
+    try {
+      return await db.select().from('assessments').orderBy('assessments.created_at');
+    } catch (error) {
+      console.error('Database error in getAllAssessments:', error);
+      throw error;
+    }
   }
 
   async createAssessment(insertAssessment) {
-    const [assessment] = await db.insert('assessments').values({
-      ...insertAssessment,
-      created_at: new Date(),
-      updated_at: new Date()
-    }).returning();
-    return assessment;
+    try {
+      const [assessment] = await db.insert('assessments').values({
+        ...insertAssessment,
+        created_at: new Date(),
+        updated_at: new Date()
+      }).returning();
+      return assessment;
+    } catch (error) {
+      console.error('Database error in createAssessment:', error);
+      throw error;
+    }
   }
 
   async updateAssessment(id, updateAssessment) {
-    const [assessment] = await db
-      .update('assessments')
-      .set({
-        ...updateAssessment,
-        updated_at: new Date()
-      })
-      .where(eq('id', id))
-      .returning();
-    return assessment || undefined;
+    try {
+      const [assessment] = await db
+        .update('assessments')
+        .set({
+          ...updateAssessment,
+          updated_at: new Date()
+        })
+        .where(eq('assessments.id', id))
+        .returning();
+      return assessment || undefined;
+    } catch (error) {
+      console.error('Database error in updateAssessment:', error);
+      throw error;
+    }
   }
 
   async exportAssessmentData() {
-    const assessments = await db.select().from('assessments');
-    const completeCount = assessments.filter(a => a.completed).length;
-    const incompleteCount = assessments.length - completeCount;
-    
-    return {
-      totalCount: assessments.length,
-      completeCount,
-      incompleteCount,
-      data: assessments
-    };
+    try {
+      const assessments = await db.select().from('assessments').orderBy('assessments.created_at');
+      const completeCount = assessments.filter(a => a.completed).length;
+      const incompleteCount = assessments.length - completeCount;
+      
+      return {
+        totalCount: assessments.length,
+        completeCount,
+        incompleteCount,
+        data: assessments
+      };
+    } catch (error) {
+      console.error('Database error in exportAssessmentData:', error);
+      throw error;
+    }
   }
 }
 

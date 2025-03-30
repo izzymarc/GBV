@@ -1,66 +1,89 @@
-# Deploying to Netlify
+# Deployment Guide for GBV Psychosocial Assessment Tool
 
-This document provides instructions for deploying the GBV Psychosocial Assessment Tool to Netlify.
+This guide outlines the steps to deploy the GBV Psychosocial Assessment Tool to Netlify.
 
 ## Prerequisites
 
 1. A Netlify account
-2. Access to a PostgreSQL database (such as NeonDB)
+2. A PostgreSQL database (NeonDB recommended)
+3. Database connection string
 
-## Deployment Steps
+## Step 1: Prepare Your Application
 
-### 1. Connect to Netlify
+The application is already configured for Netlify deployment with:
 
-1. Sign in to your Netlify account
-2. Click "Add new site" and select "Import an existing project"
-3. Connect to your Git provider (GitHub, GitLab, etc.) and select the repository
-4. Select the branch to deploy (usually `main` or `master`)
+- `netlify.toml` - Deployment configuration
+- `netlify/functions` - Serverless functions
+- `.env.production` - Production environment variables
 
-### 2. Configure Build Settings
+## Step 2: Connect to Netlify
 
-The build settings should be automatically detected from the `netlify.toml` file, but verify:
+1. Log in to your Netlify account
+2. Create a new site from Git
+3. Connect to your Git repository
+4. Configure build settings:
+   - Build command: `npm run build`
+   - Publish directory: `dist/public`
 
-- Build command: `npm run build`
-- Publish directory: `dist`
+## Step 3: Set Environment Variables
 
-### 3. Configure Environment Variables
+In the Netlify dashboard, go to Site settings > Environment variables and add:
 
-Set the following environment variables in Netlify's dashboard (Site settings > Environment variables):
+```
+DATABASE_URL=your_postgresql_connection_string
+```
 
-- `DATABASE_URL`: Your PostgreSQL connection string
-- Any other sensitive information needed for the application
+## Step 4: Deploy
 
-### 4. Deploy
+1. Trigger a deploy in the Netlify dashboard
+2. Wait for the build to complete
+3. Your application will be available at the Netlify-assigned URL
 
-1. Click "Deploy site"
-2. Wait for the build and deployment to complete
-3. Your site will be available at the URL provided by Netlify
+## Step 5: Custom Domain (Optional)
 
-### 5. Setup Custom Domain (Optional)
-
-1. Go to Site settings > Domain management
-2. Click "Add custom domain"
-3. Follow the instructions to configure your domain
-
-## Serverless Functions
-
-This application uses Netlify Functions to handle backend API requests. The functions are located in the `netlify/functions` directory.
+1. In the Netlify dashboard, go to Site settings > Domain management
+2. Add your custom domain
+3. Configure DNS settings as prompted
 
 ## Troubleshooting
 
-If you encounter any issues during deployment:
+### Database Connection Issues
 
-1. Check the deployment logs in Netlify's dashboard
-2. Verify that all environment variables are correctly set
-3. Ensure your database is accessible from Netlify's servers
-4. Check the function logs for any errors in API requests
+If you encounter database connection issues:
 
-## Database Migrations
+1. Verify your `DATABASE_URL` environment variable
+2. Ensure your database is accessible from Netlify's servers
+3. Check database connection logs in Netlify's function logs
 
-Before deploying, make sure your database schema is up to date by running migrations. On your local machine, run:
+### 404 Errors on Page Refresh
 
-```
-npm run db:push
-```
+If you get 404 errors when refreshing pages:
 
-This will apply any pending database migrations to your production database.
+1. Verify the redirect rules in `netlify.toml`
+2. Make sure the publish directory is set to `dist/public`
+
+### API Endpoint Issues
+
+If API endpoints aren't working:
+
+1. Check the Netlify function logs
+2. Verify the client is configured to use the correct API URL
+3. Ensure CORS settings allow requests from your domain
+
+## Maintenance
+
+### Updating Your Application
+
+1. Push changes to your Git repository
+2. Netlify will automatically rebuild and deploy
+
+### Database Migrations
+
+When making database schema changes:
+
+1. Update your local schema
+2. Run migrations to update the production database
+
+## Contact Support
+
+For further assistance, contact [your contact information].

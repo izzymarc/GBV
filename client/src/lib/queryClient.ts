@@ -2,6 +2,10 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 // Get the API base URL based on environment
 const getApiBaseUrl = () => {
+  // Use the environment variable if available
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   // In production (Netlify), use the /.netlify/functions/ path
   if (import.meta.env.PROD) {
     return "/.netlify/functions/api";
@@ -23,9 +27,18 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   // Adjust the URL for production environment
-  const adjustedUrl = import.meta.env.PROD && url.startsWith('/api') 
-    ? getApiBaseUrl() + url 
-    : url;
+  let adjustedUrl = url;
+  
+  // If we're in production and it's an API call
+  if (url.startsWith('/api')) {
+    if (import.meta.env.VITE_API_URL) {
+      // If using the environment variable
+      adjustedUrl = import.meta.env.VITE_API_URL + url;
+    } else if (import.meta.env.PROD) {
+      // Default Netlify functions path
+      adjustedUrl = "/.netlify/functions/api" + url;
+    }
+  }
 
   const res = await fetch(adjustedUrl, {
     method,
@@ -46,8 +59,16 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Adjust the URL for production environment
     let url = queryKey[0] as string;
-    if (import.meta.env.PROD && url.startsWith('/api')) {
-      url = getApiBaseUrl() + url;
+    
+    // If it's an API call, adjust URL for production/Netlify
+    if (url.startsWith('/api')) {
+      if (import.meta.env.VITE_API_URL) {
+        // If using the environment variable
+        url = import.meta.env.VITE_API_URL + url;
+      } else if (import.meta.env.PROD) {
+        // Default Netlify functions path
+        url = "/.netlify/functions/api" + url;
+      }
     }
 
     const res = await fetch(url, {
