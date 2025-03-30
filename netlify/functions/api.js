@@ -1,9 +1,7 @@
 import express from 'express';
 import serverless from 'serverless-http';
 import cors from 'cors';
-import { drizzle } from 'drizzle-orm';
 import { Pool } from 'pg';
-import { eq } from 'drizzle-orm';
 
 // We'll import our schemas directly
 // This is a simplified version for Netlify Functions
@@ -38,32 +36,23 @@ app.use((req, res, next) => {
 // Initialize database connection
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-// Define schema for Netlify functions
-const schema = {
-  users: {
-    id: { name: 'id' },
-    username: { name: 'username' },
-    password: { name: 'password' },
-    isAdmin: { name: 'is_admin' }
-  },
-  assessments: {
-    id: { name: 'id' },
-    createdAt: { name: 'created_at' },
-    updatedAt: { name: 'updated_at' },
-    completed: { name: 'completed' },
-    formData: { name: 'form_data' }
-  }
-};
+// Log database connection status
+console.log(`PostgreSQL: Connecting to ${process.env.DATABASE_URL ? 'configured database' : 'no database configured'}`);
+
+// Enhanced error logging for database operations
+pool.on('error', (err) => {
+  console.error('Unexpected PostgreSQL pool error:', err);
+});
 
 // Database Logic
-const db = drizzle(pool);
 
 // Basic storage
 class PostgresStorage {
   async getUser(id) {
     try {
-      const [user] = await db.select().from('users').where(eq('users.id', id));
-      return user || undefined;
+      // Use raw query for maximum compatibility
+      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+      return result.rows[0] || undefined;
     } catch (error) {
       console.error('Database error in getUser:', error);
       throw error;
@@ -72,8 +61,9 @@ class PostgresStorage {
 
   async getUserByUsername(username) {
     try {
-      const [user] = await db.select().from('users').where(eq('users.username', username));
-      return user || undefined;
+      // Use raw query for maximum compatibility
+      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+      return result.rows[0] || undefined;
     } catch (error) {
       console.error('Database error in getUserByUsername:', error);
       throw error;
@@ -82,8 +72,13 @@ class PostgresStorage {
 
   async createUser(insertUser) {
     try {
-      const [user] = await db.insert('users').values(insertUser).returning();
-      return user;
+      // Using parameterized query for security and compatibility
+      const { username, password, is_admin } = insertUser;
+      const result = await pool.query(
+        'INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3) RETURNING *',
+        [username, password, is_admin || false]
+      );
+      return result.rows[0];
     } catch (error) {
       console.error('Database error in createUser:', error);
       throw error;
@@ -92,8 +87,9 @@ class PostgresStorage {
 
   async getAssessment(id) {
     try {
-      const [assessment] = await db.select().from('assessments').where(eq('assessments.id', id));
-      return assessment || undefined;
+      // Use raw query for maximum compatibility
+      const result = await pool.query('SELECT * FROM assessments WHERE id = $1', [id]);
+      return result.rows[0] || undefined;
     } catch (error) {
       console.error('Database error in getAssessment:', error);
       throw error;
@@ -102,7 +98,9 @@ class PostgresStorage {
 
   async getAllAssessments() {
     try {
-      return await db.select().from('assessments').orderBy('assessments.created_at');
+      // Use raw query for maximum compatibility
+      const result = await pool.query('SELECT * FROM assessments ORDER BY created_at');
+      return result.rows;
     } catch (error) {
       console.error('Database error in getAllAssessments:', error);
       throw error;
@@ -111,12 +109,13 @@ class PostgresStorage {
 
   async createAssessment(insertAssessment) {
     try {
-      const [assessment] = await db.insert('assessments').values({
-        ...insertAssessment,
-        created_at: new Date(),
-        updated_at: new Date()
-      }).returning();
-      return assessment;
+      // Using parameterized query for security and compatibility
+      const { completed, form_data } = insertAssessment;
+      const result = await pool.query(
+        'INSERT INTO assessments (created_at, updated_at, completed, data) VALUES ($1, $2, $3, $4) RETURNING *',
+        [new Date(), new Date(), completed || false, form_data]
+      );
+      return result.rows[0];
     } catch (error) {
       console.error('Database error in createAssessment:', error);
       throw error;
@@ -125,15 +124,13 @@ class PostgresStorage {
 
   async updateAssessment(id, updateAssessment) {
     try {
-      const [assessment] = await db
-        .update('assessments')
-        .set({
-          ...updateAssessment,
-          updated_at: new Date()
-        })
-        .where(eq('assessments.id', id))
-        .returning();
-      return assessment || undefined;
+      // Using parameterized query for security and compatibility
+      const { completed, form_data } = updateAssessment;
+      const result = await pool.query(
+        'UPDATE assessments SET updated_at = $1, completed = $2, data = $3 WHERE id = $4 RETURNING *',
+        [new Date(), completed || false, form_data, id]
+      );
+      return result.rows[0] || undefined;
     } catch (error) {
       console.error('Database error in updateAssessment:', error);
       throw error;
@@ -142,16 +139,37 @@ class PostgresStorage {
 
   async exportAssessmentData() {
     try {
-      const assessments = await db.select().from('assessments').orderBy('assessments.created_at');
-      const completeCount = assessments.filter(a => a.completed).length;
-      const incompleteCount = assessments.length - completeCount;
-      
-      return {
-        totalCount: assessments.length,
-        completeCount,
-        incompleteCount,
-        data: assessments
-      };
+      // Use raw query and transaction for maximum reliability
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        
+        // Get all assessments
+        const assessmentsResult = await client.query('SELECT * FROM assessments ORDER BY created_at');
+        const assessments = assessmentsResult.rows;
+        
+        // Count completed assessments
+        const completeCountResult = await client.query('SELECT COUNT(*) FROM assessments WHERE completed = true');
+        const completeCount = parseInt(completeCountResult.rows[0].count);
+        
+        // Count total assessments
+        const totalCountResult = await client.query('SELECT COUNT(*) FROM assessments');
+        const totalCount = parseInt(totalCountResult.rows[0].count);
+        
+        await client.query('COMMIT');
+        
+        return {
+          totalCount,
+          completeCount,
+          incompleteCount: totalCount - completeCount,
+          data: assessments
+        };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     } catch (error) {
       console.error('Database error in exportAssessmentData:', error);
       throw error;
